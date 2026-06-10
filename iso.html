@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>おすしのはこにわ アイソメばん</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'DotGothic16',monospace;
+    background:#FFD9E3;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+    padding:16px 12px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1{color:#8A5A48;font-size:20px;letter-spacing:2px;margin:4px 0 2px}
+  .sub{color:#C98A96;font-size:12px;margin-bottom:10px}
+  .frame{
+    background:#FFEFF3;border:4px solid #fff;border-radius:12px;
+    box-shadow:0 4px 0 #E9B7C4;padding:6px;width:100%;max-width:520px;
+  }
+  canvas{
+    display:block;width:100%;
+    image-rendering:pixelated;image-rendering:crisp-edges;
+    border-radius:6px;touch-action:manipulation;
+  }
+  .counter{color:#8A5A48;font-size:13px;margin-top:10px}
+  .counter b{color:#E06A3C}
+</style>
+</head>
+<body>
+<h1>おすしのはこにわ</h1>
+<div class="sub">アイソメばん ♢ タップで おすし ふえるよ ♡</div>
+<div class="frame"><canvas id="cv"></canvas></div>
+<div class="counter">おすしのみんな: <b id="count">0</b> かん</div>
+
+<script>
+// ---- ネタパレット(追加はここに4+2色足すだけ) ----
+const NETA = {
+  salmon: { S:'#FF8C5F', stripe:'#FFC9A1', hi:'#FFE6D2', left:'#EC7046', right:'#E06A3C' },
+  maguro: { S:'#E64A5E', stripe:'#F2858F', hi:'#FAB4BB', left:'#D8405A', right:'#B83648' }
+};
+
+// ---- ボクセル→アイソメ ベイク ----
+// mode: stretch / scrunchF(前端=xmax固定) / scrunchB(前端=xmin固定)
+function bakeIso(pal, mode){
+  const c = document.createElement('canvas'); c.width = 32; c.height = 32;
+  const g = c.getContext('2d');
+  let rx0=0, rx1=8, nx0=-1, nx1=9, nzt=9;
+  if (mode==='scrunchF'){ rx0=1; nx0=0;  nzt=10; }
+  if (mode==='scrunchB'){ rx1=7; nx1=8;  nzt=10; }
+  const OX=10, OY=15;
+  const put=(x,y,col)=>{ g.fillStyle=col; g.fillRect(x,y,1,1); };
+  for (let z=0; z<=nzt; z++){
+    for (let y=-1; y<5; y++){
+      for (let x=nx0; x<nx1; x++){
+        let kind = null;
+        if (z<=4){ if (x>=rx0 && x<rx1 && y>=0 && y<4) kind='rice'; }
+        else      { if (x>=nx0 && x<nx1)               kind='neta'; }
+        if (!kind) continue;
+        const sx = 2*(x-y)+OX, sy = (x+y)-z+OY;
+        let top, left, right;
+        if (kind==='neta'){
+          top = (((x+y)%3)+3)%3===0 ? pal.stripe : pal.S;
+          if (x<=nx0+1 && y<=0) top = pal.hi;
+          left = pal.left; right = pal.right;
+        } else {
+          top = '#FFFDF6'; left = '#F5EAD4'; right = '#E0CFB2';
+        }
+        put(sx+1,sy,top);  put(sx+2,sy,top);
+        put(sx,sy+1,top);  put(sx+1,sy+1,top); put(sx+2,sy+1,top); put(sx+3,sy+1,top);
+        put(sx,sy+2,left); put(sx+1,sy+2,left);
+        put(sx+2,sy+2,right); put(sx+3,sy+2,right);
+      }
+    }
+  }
+  return c;
+}
+function flipped(src){
+  const c = document.createElement('canvas'); c.width = 32; c.height = 32;
+  const g = c.getContext('2d');
+  g.translate(32,0); g.scale(-1,1); g.drawImage(src,0,0);
+  return c;
+}
+// SPR[kind][axis] = { stretch, scrunchF, scrunchB }   axis: u=そのまま, v=左右反転
+const SPR = {};
+for (const [name, pal] of Object.entries(NETA)){
+  const st = bakeIso(pal,'stretch'), sf = bakeIso(pal,'scrunchF'), sb = bakeIso(pal,'scrunchB');
+  SPR[name] = {
+    u: { stretch:st, scrunchF:sf, scrunchB:sb },
+    v: { stretch:flipped(st), scrunchF:flipped(sf), scrunchB:flipped(sb) }
+  };
+}
+
+// ---- ワールド(座標は全部ボクセル単位 u,v) ----
+const W=192, H=120, CX=96, CY=14;
+const TILES=10, UMAX=TILES*4;          // 床: 40x40ボクセル
+const cv = document.getElementById('cv');
+cv.width=W; cv.height=H;
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+// 床は1回だけオフスクリーンに描いておく
+const floorCv = document.createElement('canvas');
+floorCv.width=W; floorCv.height=H;
+{
+  const g = floorCv.getContext('2d');
+  g.fillStyle = '#FFF4F7'; g.fillRect(0,0,W,H);
+  const COL = ['#FFE3EA','#FBD0DC'];
+  for (let ty=0; ty<TILES; ty++){
+    for (let tx=0; tx<TILES; tx++){
+      const cx0=(tx-ty)*8+CX, cy0=(tx+ty)*4+CY;
+      g.fillStyle = COL[(tx+ty)%2];
+      const wRow=[4,8,8,4];
+      for (let dy=0; dy<4; dy++) g.fillRect(cx0-wRow[dy]/2, cy0+dy, wRow[dy], 1);
+    }
+  }
+}
+
+const STEP_MS = 190;
+const sushis = [], hearts = [];
+const MARGIN = 6;
+
+function spawn(u, v){
+  const kinds = Object.keys(NETA);
+  sushis.push({
+    kind: kinds[Math.floor(Math.random()*kinds.length)],
+    u: u ?? MARGIN + Math.random()*(UMAX-2*MARGIN),
+    v: v ?? MARGIN + Math.random()*(UMAX-2*MARGIN),
+    axis: Math.random()<.5 ? 'u' : 'v',
+    sign: Math.random()<.5 ? 1 : -1,
+    frame: Math.random()<.5 ? 0 : 1,   // 0=stretch 1=scrunch
+    timer: Math.random()*STEP_MS,
+    pause: 0
+  });
+  document.getElementById('count').textContent = sushis.length;
+}
+
+function tick(dt){
+  for (const s of sushis){
+    if (s.pause>0){ s.pause-=dt; continue; }
+    s.timer += dt;
+    if (s.timer < STEP_MS) continue;
+    s.timer -= STEP_MS;
+    s.frame = 1 - s.frame;
+    if (s.frame===0){                       // 縮み→伸び: 1ボクセル前進
+      s[s.axis] += s.sign;
+      if (s[s.axis] < MARGIN || s[s.axis] > UMAX-MARGIN){
+        s[s.axis] = Math.max(MARGIN, Math.min(UMAX-MARGIN, s[s.axis]));
+        if (Math.random()<.5) s.sign *= -1;
+        else s.axis = s.axis==='u' ? 'v' : 'u';   // 角でくるっと曲がる
+      }
+      else if (Math.random()<.05) s.axis = s.axis==='u' ? 'v' : 'u';
+      else if (Math.random()<.03) s.sign *= -1;
+      if (Math.random()<.03) s.pause = 800 + Math.random()*1500;
+      if (Math.random()<.015) hearts.push({u:s.u, v:s.v, dy:0, life:1});
+    }
+  }
+  for (let i=hearts.length-1; i>=0; i--){
+    hearts[i].dy -= dt*.008;
+    hearts[i].life -= dt/1200;
+    if (hearts[i].life<=0) hearts.splice(i,1);
+  }
+}
+
+function drawHeart(x, y, a){
+  ctx.globalAlpha = a;
+  ctx.fillStyle = '#F783A1';
+  const px = [[1,0],[3,0],[0,1],[1,1],[2,1],[3,1],[4,1],[1,2],[2,2],[3,2],[2,3]];
+  for (const [dx,dy] of px) ctx.fillRect(Math.round(x)+dx-2, Math.round(y)+dy-2, 1, 1);
+  ctx.globalAlpha = 1;
+}
+
+function draw(){
+  ctx.drawImage(floorCv, 0, 0);
+  const sorted = [...sushis].sort((a,b) => (a.u+a.v) - (b.u+b.v));   // 奥行きソート
+  for (const s of sorted){
+    const sx = 2*(s.u-s.v)+CX, sy = (s.u+s.v)+CY;
+    let img;
+    if (s.pause>0 || s.frame===0) img = SPR[s.kind][s.axis].stretch;
+    else img = SPR[s.kind][s.axis][s.sign>0 ? 'scrunchF' : 'scrunchB'];
+    ctx.drawImage(img, Math.round(sx)-16, Math.round(sy)-15);
+  }
+  for (const h of hearts){
+    drawHeart(2*(h.u-h.v)+CX, (h.u+h.v)+CY-16+h.dy, Math.max(0,h.life));
+  }
+}
+
+let last = performance.now();
+function loop(now){
+  tick(Math.min(now-last, 100));
+  last = now;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+cv.addEventListener('pointerdown', e => {
+  if (sushis.length >= 12) return;
+  const r = cv.getBoundingClientRect();
+  const px = (e.clientX-r.left)/r.width*W, py = (e.clientY-r.top)/r.height*H;
+  const u = ((px-CX)/2 + (py-CY))/2;
+  const v = (py-CY) - u;
+  if (u<0 || v<0 || u>UMAX || v>UMAX) return;   // 床の外は無効
+  spawn(Math.max(MARGIN,Math.min(UMAX-MARGIN,u)),
+        Math.max(MARGIN,Math.min(UMAX-MARGIN,v)));
+});
+
+spawn(); spawn(); spawn();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
