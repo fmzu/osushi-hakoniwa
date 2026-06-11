@@ -72,7 +72,7 @@
 </head>
 <body>
 <h1>おすしのはこにわ</h1>
-<div class="sub">おすしを タップして はっけんしよう ♡</div>
+<div class="sub">おすしに あいさつして なかよくなろう ♡</div>
 <div class="frame">
   <canvas id="cv"></canvas>
   <div id="banner"></div>
@@ -273,6 +273,32 @@ function spawn(x, y, sp){
   });
   document.getElementById('count').textContent = sushis.length;
 }
+const MAX_SUSHI = 14;
+function markSeen(sp){
+  if (state.seen.has(sp.id)) return;
+  state.seen.add(sp.id);
+  store.save(state);
+  if (sp.rarity === 3){
+    showBanner('✨レアはっけん！！ ' + sp.name + '✨');
+    for (let i=0;i<10;i++) hearts.push({x:30+Math.random()*100, y:GROUND_TOP+Math.random()*80, life:1});
+  } else {
+    showBanner('みかけた！ ' + sp.name);
+  }
+  updateZukanCount();
+}
+function visit(){
+  if (sushis.length >= MAX_SUSHI) return false;
+  const sp = pickSpecies();
+  spawn(undefined, undefined, sp);
+  markSeen(sp);
+  return true;
+}
+function leave(){
+  if (sushis.length <= 3) return;
+  const i = Math.floor(Math.random()*sushis.length);
+  sushis.splice(i, 1);
+  document.getElementById('count').textContent = sushis.length;
+}
 
 function tick(dt){
   for (const s of sushis){
@@ -327,10 +353,6 @@ let last = performance.now();
   requestAnimationFrame(loop);
 })(last);
 
-// 住人は時間でもふらっと増える
-setInterval(()=>{ if (sushis.length < 10) spawn(); }, 8000);
-spawn(); spawn(); spawn();
-
 // ============ はっけん ============
 const banner = document.getElementById('banner');
 let bannerTimer = null;
@@ -360,7 +382,6 @@ cv.addEventListener('pointerdown', e => {
       return;
     }
   }
-  if (sushis.length < 12 && py > GROUND_TOP) spawn(px-8, py-8);
 });
 
 // ============ ずかん ============
@@ -391,6 +412,33 @@ document.getElementById('openZukan').onclick = ()=>{ renderZukan(); zukan.classL
 document.getElementById('closeZukan').onclick = ()=>zukan.classList.remove('open');
 zukan.addEventListener('pointerdown', e=>{ if (e.target===zukan) zukan.classList.remove('open'); });
 updateZukanCount();
+
+// ============ 来店・退店(タイマー) ============
+function scheduleVisit(){
+  setTimeout(()=>{ visit(); scheduleVisit(); }, 60000 + Math.random()*60000);   // 60〜120秒
+}
+function scheduleLeave(){
+  setTimeout(()=>{ leave(); scheduleLeave(); }, 120000 + Math.random()*120000); // 2〜4分
+}
+scheduleVisit();
+scheduleLeave();
+
+// ============ 留守中の来店 + 初回 ============
+(function welcomeBack(){
+  const AWAY_MS = 20*60*1000; // 20分に1匹
+  let arrivals = 0;
+  if (state.lastVisit > 0){
+    arrivals = Math.min(5, Math.floor((Date.now()-state.lastVisit)/AWAY_MS));
+  }
+  for (let i=0;i<arrivals;i++) visit();
+  if (arrivals > 0) setTimeout(()=>showBanner('るすのあいだに 来てたみたい'), 600);
+  while (sushis.length < 3) visit();  // 初回・過疎時の最低保証
+})();
+// 最終訪問時刻を定期保存
+setInterval(()=>{ state.lastVisit = Date.now(); store.save(state); }, 30000);
+document.addEventListener('visibilitychange', ()=>{
+  if (document.hidden){ state.lastVisit = Date.now(); store.save(state); }
+});
 </script>
 </body>
 </html>
