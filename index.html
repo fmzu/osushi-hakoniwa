@@ -222,12 +222,28 @@ for (const sp of SPECIES){
   sp.shadow = silhouette(sp.spr['1'][0]);
 }
 
-// ============ 保存(リポジトリ運用前提でlocalStorage / 失敗時はメモリのみ) ============
+// ============ 保存(localStorage / 失敗時はメモリのみ) ============
+// v2形式: { seen:[id], friends:[id], greet:{id:回数}, lastVisit:エポックms }
+// 旧v1(osushi-zukan: 発見ID配列)は seen/friends 両方へ移行（発見済み=なかよし扱い）
 const store = {
-  load(){ try { return new Set(JSON.parse(localStorage.getItem('osushi-zukan')||'[]')); } catch(e){ return new Set(); } },
-  save(s){ try { localStorage.setItem('osushi-zukan', JSON.stringify([...s])); } catch(e){} }
+  load(){
+    try {
+      const v2 = JSON.parse(localStorage.getItem('osushi-zukan-v2'));
+      if (v2) return { seen:new Set(v2.seen||[]), friends:new Set(v2.friends||[]),
+                       greet:v2.greet||{}, lastVisit:v2.lastVisit||0 };
+      const v1 = JSON.parse(localStorage.getItem('osushi-zukan')||'[]');
+      return { seen:new Set(v1), friends:new Set(v1), greet:{}, lastVisit:0 };
+    } catch(e){ return { seen:new Set(), friends:new Set(), greet:{}, lastVisit:0 }; }
+  },
+  save(st){
+    try {
+      localStorage.setItem('osushi-zukan-v2', JSON.stringify({
+        seen:[...st.seen], friends:[...st.friends], greet:st.greet, lastVisit:st.lastVisit
+      }));
+    } catch(e){}
+  }
 };
-const discovered = store.load();
+const state = store.load();
 
 // ============ ワールド ============
 const W = 160, H = 144, GROUND_TOP = 28;
@@ -325,8 +341,8 @@ function showBanner(text){
   bannerTimer = setTimeout(()=>banner.classList.remove('show'), 1800);
 }
 function discover(s){
-  discovered.add(s.sp.id);
-  store.save(discovered);
+  state.friends.add(s.sp.id);
+  store.save(state);
   showBanner('はっけん！ ' + s.sp.name);
   for (let i=0;i<5;i++) hearts.push({x:s.x+4+Math.random()*8, y:s.y-2-Math.random()*4, life:1});
   updateZukanCount();
@@ -339,7 +355,7 @@ cv.addEventListener('pointerdown', e => {
   const sorted = [...sushis].sort((a,b)=>b.y-a.y);
   for (const s of sorted){
     if (px>=s.x && px<s.x+16 && py>=s.y && py<s.y+16){
-      if (!discovered.has(s.sp.id)) discover(s);
+      if (!state.friends.has(s.sp.id)) discover(s);
       else hearts.push({x:s.x+8, y:s.y-2, life:1});
       return;
     }
@@ -351,14 +367,14 @@ cv.addEventListener('pointerdown', e => {
 const zukan = document.getElementById('zukan');
 const cards = document.getElementById('cards');
 function updateZukanCount(){
-  const t = `${discovered.size}/${SPECIES.length}`;
+  const t = `${state.friends.size}/${SPECIES.length}`;
   document.getElementById('zcnt').textContent = t;
   document.getElementById('zcnt2').textContent = 'はっけん ' + t + ' かん';
 }
 function renderZukan(){
   cards.innerHTML = '';
   for (const sp of SPECIES){
-    const known = discovered.has(sp.id);
+    const known = state.friends.has(sp.id);
     const card = document.createElement('div');
     card.className = 'card' + (known ? '' : ' unknown');
     const img = document.createElement('img');
