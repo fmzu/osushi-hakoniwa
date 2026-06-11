@@ -67,6 +67,8 @@
   .card .nm{color:#8A5A48;font-size:14px;margin-top:2px}
   .card .sk{color:#E06A3C;font-size:12px}
   .card.unknown .nm,.card.unknown .sk{color:#D9A8B5}
+  .card.seen .nm,.card.seen .sk{color:#C98A96}
+  .card .rar{color:#E8B23E;font-size:11px;letter-spacing:1px}
   .close{display:block;margin:14px auto 0}
 </style>
 </head>
@@ -411,23 +413,28 @@ setInterval(()=>{
 const zukan = document.getElementById('zukan');
 const cards = document.getElementById('cards');
 function updateZukanCount(){
-  const t = `${state.friends.size}/${SPECIES.length}`;
-  document.getElementById('zcnt').textContent = t;
-  document.getElementById('zcnt2').textContent = 'はっけん ' + t + ' かん';
+  document.getElementById('zcnt').textContent = `${state.friends.size}/${SPECIES.length}`;
+  document.getElementById('zcnt2').textContent =
+    `みかけた ${state.seen.size}/${SPECIES.length} ・ なかよし ${state.friends.size}/${SPECIES.length}`;
 }
 function renderZukan(){
-  cards.innerHTML = '';
+  cards.replaceChildren();
   for (const sp of SPECIES){
-    const known = state.friends.has(sp.id);
+    const friend = state.friends.has(sp.id);
+    const seen = state.seen.has(sp.id);
     const card = document.createElement('div');
-    card.className = 'card' + (known ? '' : ' unknown');
+    card.className = 'card' + (friend ? '' : seen ? ' seen' : ' unknown');
     const img = document.createElement('img');
-    img.src = (known ? sp.spr['1'][0] : sp.shadow).toDataURL();
-    const nm = document.createElement('div'); nm.className='nm';
-    nm.textContent = known ? sp.name : '？？？';
-    const sk = document.createElement('div'); sk.className='sk';
-    sk.textContent = known ? 'せいかく: ' + sp.seikaku : '…だれだろう';
-    card.append(img, nm, sk);
+    img.src = (seen ? sp.spr['1'][0] : sp.shadow).toDataURL();
+    const rar = document.createElement('div'); rar.className = 'rar';
+    rar.textContent = '★'.repeat(sp.rarity);
+    const nm = document.createElement('div'); nm.className = 'nm';
+    nm.textContent = friend ? sp.name : '？？？';
+    const sk = document.createElement('div'); sk.className = 'sk';
+    sk.textContent = friend ? 'せいかく: ' + sp.seikaku
+                   : seen   ? 'あいさつして なかよくなろう'
+                   :          '…だれだろう';
+    card.append(img, rar, nm, sk);
     cards.append(card);
   }
 }
