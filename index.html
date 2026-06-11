@@ -225,7 +225,7 @@ function pickSpecies(){
   const total = SPECIES.reduce((a,s)=>a+RARITY_WEIGHT[s.rarity],0);
   let r = Math.random()*total;
   for (const s of SPECIES){ r -= RARITY_WEIGHT[s.rarity]; if (r<0) return s; }
-  return SPECIES[0];
+  return SPECIES.at(-1);
 }
 function spawn(x, y, sp){
   sp = sp || pickSpecies();
