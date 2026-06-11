@@ -58,7 +58,38 @@ NETA_FRONT = {
     "maguro": {"S": (230,74,94),  "L": (242,133,143), "H": (250,180,187), "E": (184,54,72)},
     "tamago": {"S": (255,210,74), "L": (255,226,133), "H": (255,242,188), "E": (232,162,62),
                "band": (65,79,68)},
+    "ebi":    {"S": (255,240,232), "L": (255,134,98), "H": (255,250,246), "E": (238,148,118)},
+    "ika":    {"S": (243,242,247), "L": (255,255,255), "H": (255,255,255), "E": (207,203,220)},
 }
+
+# 軍艦(いくら)は専用グリッド: N 海苔 / n 海苔の照り / O いくら / P 粒の光 / Q 粒の影
+GRID_GUNKAN_STRETCH = [
+"................","................","................","................",
+"...P..P..P..P...",
+"..OOOOOOOOOOOO..",
+".NQOQQOQQOQQOQN.",
+".NNNNNNNNNNNNNN.",
+".NNnNNNNNNNNNNN.",
+".NNNNNNNnNNNNNN.",
+".NNNNNNNNNNNnNN.",
+".NNNNNNNNNNNNNN.",
+"..NNNNNNNNNNNN..",
+"................","................","................"]
+GRID_GUNKAN_SCRUNCH = [
+"................","................","................",
+".....P..P..P....",
+"...NOOOOOOOOON..",
+"...NOOOOOOOOON..",
+"...NQOQQOQQOQN..",
+"...NNNNNNNNNNNN.",
+"...NNnNNNNNNNNN.",
+"...NNNNNNNNnNNN.",
+"...NNNNNNNNNNNN.",
+"...NNNNNNNNNNNN.",
+"....NNNNNNNNNN..",
+"................","................","................"]
+IKURA = {"N": (65,79,68), "n": (94,110,96), "O": (255,116,54),
+         "P": (255,193,142), "Q": (224,82,42)}
 
 def render_front(grid, neta, band_cols=None):
     pal = {**RICE, **{k: v for k, v in neta.items() if k != "band"}}
@@ -146,6 +177,12 @@ def main():
         ]
         save_sheet(frames, SHEETS / f"{name}-front.png")
         save_gif(frames, PREVIEWS / f"{name}-front.gif", scale=15)
+    ikura_frames = [
+        render_front(GRID_GUNKAN_STRETCH, IKURA),
+        render_front(GRID_GUNKAN_SCRUNCH, IKURA),
+    ]
+    save_sheet(ikura_frames, SHEETS / "ikura-front.png")
+    save_gif(ikura_frames, PREVIEWS / "ikura-front.gif", scale=15)
     for name, neta in NETA_ISO.items():
         frames = [render_iso(neta, False), render_iso(neta, True)]
         save_sheet(frames, SHEETS / f"{name}-iso.png")
