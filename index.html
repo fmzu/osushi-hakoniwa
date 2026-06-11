@@ -123,27 +123,52 @@ const RICE = { R:'#FFFDF6', D:'#EFDFC8', d:'#E0CFB2' };
 // ============ 住人図鑑(マスターデータ) ============
 // せいかくは挙動パラメータに直結:
 //   step=歩くテンポms / pauseP=ひとやすみ率 / pauseLen=休憩長 /
-//   heartP=♡率 / flipP=Uターン率 / driftP=奥行きふらふら率 / weight=出現しやすさ
+//   heartP=♡率 / flipP=Uターン率 / driftP=奥行きふらふら率
+// rarity: 1=★ふつう / 2=★★めずらしい / 3=★★★とってもレア
 const SPECIES = [
- { id:'salmon', name:'サーモン', seikaku:'のんびりや', shape:NIGIRI,
+ { id:'salmon', name:'サーモン', seikaku:'のんびりや', shape:NIGIRI, rarity:1,
    pal:{S:'#FF8C5F',L:'#FFC9A1',H:'#FFE6D2',E:'#E06A3C'},
-   step:240, pauseP:.06, pauseLen:[1500,3500], heartP:.012, flipP:.03, driftP:.35, weight:3 },
- { id:'maguro', name:'まぐろ', seikaku:'せっかち', shape:NIGIRI,
+   step:240, pauseP:.06, pauseLen:[1500,3500], heartP:.012, flipP:.03, driftP:.35 },
+ { id:'maguro', name:'まぐろ', seikaku:'せっかち', shape:NIGIRI, rarity:1,
    pal:{S:'#E64A5E',L:'#F2858F',H:'#FAB4BB',E:'#B83648'},
-   step:135, pauseP:0, pauseLen:[0,0], heartP:.01, flipP:.02, driftP:.35, weight:3 },
- { id:'tamago', name:'たまご', seikaku:'あまえんぼ', shape:NIGIRI,
+   step:135, pauseP:0, pauseLen:[0,0], heartP:.01, flipP:.02, driftP:.35 },
+ { id:'tamago', name:'たまご', seikaku:'あまえんぼ', shape:NIGIRI, rarity:1,
    pal:{S:'#FFD24A',L:'#FFE285',H:'#FFF2BC',E:'#E8A23E',band:'#414F44'},
-   step:190, pauseP:.03, pauseLen:[800,2300], heartP:.07, flipP:.03, driftP:.35, weight:3 },
- { id:'ebi', name:'えび', seikaku:'はずかしがりや', shape:NIGIRI,
+   step:190, pauseP:.03, pauseLen:[800,2300], heartP:.07, flipP:.03, driftP:.35 },
+ { id:'tako', name:'たこ', seikaku:'こうきしんおうせい', shape:NIGIRI, rarity:1,
+   pal:{S:'#FAEDF2',L:'#C9608A',H:'#FFFFFF',E:'#B4527A'},
+   step:170, pauseP:.02, pauseLen:[800,2300], heartP:.015, flipP:.08, driftP:.5 },
+ { id:'natto', name:'なっとう', seikaku:'ねぼすけ', shape:GUNKAN, rarity:1,
+   pal:{N:'#3E4A40',n:'#5C6B5E',O:'#C9A86A',P:'#E8CD92',Q:'#A8854A'},
+   step:210, pauseP:.06, pauseLen:[2500,6000], heartP:.01, flipP:.03, driftP:.35 },
+ { id:'ebi', name:'えび', seikaku:'はずかしがりや', shape:NIGIRI, rarity:2,
    pal:{S:'#FFF0E8',L:'#FF8662',H:'#FFFAF6',E:'#EE9476'},
-   step:190, pauseP:.03, pauseLen:[800,2300], heartP:.01, flipP:.14, driftP:.35, weight:2 },
- { id:'ika', name:'いか', seikaku:'ねぼすけ', shape:NIGIRI,
+   step:190, pauseP:.03, pauseLen:[800,2300], heartP:.01, flipP:.14, driftP:.35 },
+ { id:'ika', name:'いか', seikaku:'ねぼすけ', shape:NIGIRI, rarity:2,
    pal:{S:'#F3F2F7',L:'#FFFFFF',H:'#FFFFFF',E:'#CFCBDC'},
-   step:210, pauseP:.06, pauseLen:[2500,6000], heartP:.01, flipP:.03, driftP:.35, weight:2 },
- { id:'ikura', name:'いくら', seikaku:'こうきしんおうせい', shape:GUNKAN,
+   step:210, pauseP:.06, pauseLen:[2500,6000], heartP:.01, flipP:.03, driftP:.35 },
+ { id:'ikura', name:'いくら', seikaku:'こうきしんおうせい', shape:GUNKAN, rarity:2,
    pal:{N:'#414F44',n:'#5E6E60',O:'#FF7436',P:'#FFC18E',Q:'#E0522A'},
-   step:170, pauseP:.02, pauseLen:[800,2300], heartP:.015, flipP:.08, driftP:.8, weight:1 },
+   step:170, pauseP:.02, pauseLen:[800,2300], heartP:.015, flipP:.08, driftP:.8 },
+ { id:'anago', name:'あなご', seikaku:'のんびりや', shape:NIGIRI, rarity:2,
+   pal:{S:'#C08A5A',L:'#9C6B40',H:'#E0B383',E:'#8A5A34'},
+   step:240, pauseP:.06, pauseLen:[1500,3500], heartP:.012, flipP:.03, driftP:.35 },
+ { id:'engawa', name:'えんがわ', seikaku:'はずかしがりや', shape:NIGIRI, rarity:2,
+   pal:{S:'#FBF2E0',L:'#F2D9A4',H:'#FFFFFF',E:'#E3BC78'},
+   step:190, pauseP:.03, pauseLen:[800,2300], heartP:.01, flipP:.14, driftP:.35 },
+ { id:'uni', name:'うに', seikaku:'せっかち', shape:GUNKAN, rarity:3,
+   pal:{N:'#414F44',n:'#5E6E60',O:'#F2A23E',P:'#FFD089',Q:'#D27E1E'},
+   step:135, pauseP:0, pauseLen:[0,0], heartP:.01, flipP:.02, driftP:.35 },
+ { id:'toro', name:'とろ', seikaku:'あまえんぼ', shape:NIGIRI, rarity:3,
+   pal:{S:'#F8B5B0',L:'#FFE8E4',H:'#FFF5F3',E:'#E08B86'},
+   step:190, pauseP:.03, pauseLen:[800,2300], heartP:.07, flipP:.03, driftP:.35 },
 ];
+// レアリティ → 出現の重み / あいさつ必要回数（せいかく連動）
+const RARITY_WEIGHT = { 1:6, 2:3, 3:1 };
+const GREET_NEED = {
+  'あまえんぼ':2, 'のんびりや':3, 'こうきしんおうせい':3,
+  'せっかち':4, 'ねぼすけ':4, 'はずかしがりや':6
+};
 
 // ============ スプライトベイク ============
 function bake(grid, flip, pal, bandCols){
@@ -197,9 +222,9 @@ ctx.imageSmoothingEnabled = false;
 const sushis = [], hearts = [];
 
 function pickSpecies(){
-  const total = SPECIES.reduce((a,s)=>a+s.weight,0);
+  const total = SPECIES.reduce((a,s)=>a+RARITY_WEIGHT[s.rarity],0);
   let r = Math.random()*total;
-  for (const s of SPECIES){ r -= s.weight; if (r<0) return s; }
+  for (const s of SPECIES){ r -= RARITY_WEIGHT[s.rarity]; if (r<0) return s; }
   return SPECIES[0];
 }
 function spawn(x, y, sp){
