@@ -362,25 +362,30 @@ function showBanner(text){
   clearTimeout(bannerTimer);
   bannerTimer = setTimeout(()=>banner.classList.remove('show'), 1800);
 }
-function discover(s){
-  state.friends.add(s.sp.id);
+function greet(s){
+  const sp = s.sp;
+  hearts.push({x:s.x+8, y:s.y-2, life:1});
+  if (state.friends.has(sp.id)) return;
+  state.greet[sp.id] = (state.greet[sp.id]||0) + 1;
+  if (sp.seikaku === 'はずかしがりや'){           // 逃げる素振り
+    s.dir *= -1; s.pause = 0;
+    s.x = Math.max(2, Math.min(W-18, s.x + 6*s.dir));
+  }
+  if (state.greet[sp.id] >= GREET_NEED[sp.seikaku]){
+    state.friends.add(sp.id);
+    showBanner('なかよしになった！ ' + sp.name);
+    for (let i=0;i<6;i++) hearts.push({x:s.x+4+Math.random()*8, y:s.y-2-Math.random()*4, life:1});
+    updateZukanCount();
+  }
   store.save(state);
-  showBanner('はっけん！ ' + s.sp.name);
-  for (let i=0;i<5;i++) hearts.push({x:s.x+4+Math.random()*8, y:s.y-2-Math.random()*4, life:1});
-  updateZukanCount();
 }
 
 cv.addEventListener('pointerdown', e => {
   const r = cv.getBoundingClientRect();
   const px = (e.clientX-r.left)/r.width*W, py = (e.clientY-r.top)/r.height*H;
-  // 手前のコから当たり判定
-  const sorted = [...sushis].sort((a,b)=>b.y-a.y);
+  const sorted = [...sushis].sort((a,b)=>b.y-a.y);  // 手前のコから当たり判定
   for (const s of sorted){
-    if (px>=s.x && px<s.x+16 && py>=s.y && py<s.y+16){
-      if (!state.friends.has(s.sp.id)) discover(s);
-      else hearts.push({x:s.x+8, y:s.y-2, life:1});
-      return;
-    }
+    if (px>=s.x && px<s.x+16 && py>=s.y && py<s.y+16){ greet(s); return; }
   }
 });
 
