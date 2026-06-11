@@ -79,6 +79,7 @@
 </div>
 <div class="bar">
   <span>おすし: <b id="count">0</b> かん</span>
+  <button id="bell">🔔 よぶ</button>
   <button id="openZukan">ずかん <b id="zcnt"></b></button>
 </div>
 
@@ -388,6 +389,23 @@ cv.addEventListener('pointerdown', e => {
     if (px>=s.x && px<s.x+16 && py>=s.y && py<s.y+16){ greet(s); return; }
   }
 });
+
+// ============ 呼び鈴 ============
+const bell = document.getElementById('bell');
+const BELL_CD = 90;            // クールダウン秒
+let bellLeft = 0;
+bell.addEventListener('click', ()=>{
+  if (bellLeft > 0) return;
+  bellLeft = BELL_CD;
+  bell.disabled = true;
+  setTimeout(()=>{ visit(); }, 1500 + Math.random()*2500);  // 少し間を置いて来店
+});
+setInterval(()=>{
+  if (bellLeft <= 0) return;
+  bellLeft--;
+  if (bellLeft > 0){ bell.textContent = `🔔 (${bellLeft})`; }
+  else { bell.textContent = '🔔 よぶ'; bell.disabled = false; }
+}, 1000);
 
 // ============ ずかん ============
 const zukan = document.getElementById('zukan');
