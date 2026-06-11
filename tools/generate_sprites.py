@@ -8,6 +8,8 @@
 
 ネタの追加方法:
   正面ビュー  -> NETA_FRONT に4色(+帯があればband)を追加
+  軍艦ネタ    -> NETA_GUNKAN に5色を追加
+  しっぽ等    -> OVERLAYS に name: {stretch/scrunch グリッド} を追加
   アイソメ    -> NETA_ISO に5色を追加
 形状そのものの変更は GRID_* / build_voxels を編集する。
 """
@@ -58,9 +60,27 @@ NETA_FRONT = {
     "maguro": {"S": (230,74,94),  "L": (242,133,143), "H": (250,180,187), "E": (184,54,72)},
     "tamago": {"S": (255,210,74), "L": (255,226,133), "H": (255,242,188), "E": (232,162,62),
                "band": (65,79,68)},
-    "ebi":    {"S": (255,240,232), "L": (255,134,98), "H": (255,250,246), "E": (238,148,118)},
+    "ebi":    {"S": (255,240,232), "L": (255,134,98), "H": (255,250,246), "E": (238,148,118),
+               "T": (255,134,98), "U": (238,148,118)},
     "ika":    {"S": (243,242,247), "L": (255,255,255), "H": (255,255,255), "E": (207,203,220)},
+    "tako":   {"S": (250,237,242), "L": (201,96,138), "H": (255,255,255), "E": (180,82,122)},
+    "anago":  {"S": (192,138,90),  "L": (156,107,64), "H": (224,179,131), "E": (138,90,52)},
+    "engawa": {"S": (251,242,224), "L": (242,217,164), "H": (255,255,255), "E": (227,188,120)},
+    "toro":   {"S": (248,181,176), "L": (255,232,228), "H": (255,245,243), "E": (224,139,134)},
 }
+
+# えびのしっぽ(おうぎ尾)オーバーレイ
+TAIL_STRETCH = [
+"................","UTU.............","TT..............",".TT.............",
+"..U.............","................","................","................",
+"................","................","................","................",
+"................","................","................","................"]
+TAIL_SCRUNCH = [
+"..UTU...........","..TT............","...TT...........","....U...........",
+"................","................","................","................",
+"................","................","................","................",
+"................","................","................","................"]
+OVERLAYS = {"ebi": {"stretch": TAIL_STRETCH, "scrunch": TAIL_SCRUNCH}}
 
 # 軍艦(いくら)は専用グリッド: N 海苔 / n 海苔の照り / O いくら / P 粒の光 / Q 粒の影
 GRID_GUNKAN_STRETCH = [
@@ -88,20 +108,30 @@ GRID_GUNKAN_SCRUNCH = [
 "...NNNNNNNNNNNN.",
 "....NNNNNNNNNN..",
 "................","................","................"]
-IKURA = {"N": (65,79,68), "n": (94,110,96), "O": (255,116,54),
-         "P": (255,193,142), "Q": (224,82,42)}
+NETA_GUNKAN = {
+    "ikura": {"N": (65,79,68), "n": (94,110,96), "O": (255,116,54),
+              "P": (255,193,142), "Q": (224,82,42)},
+    "natto": {"N": (62,74,64), "n": (92,107,94), "O": (201,168,106),
+              "P": (232,205,146), "Q": (168,133,74)},
+    "uni":   {"N": (65,79,68), "n": (94,110,96), "O": (242,162,62),
+              "P": (255,208,137), "Q": (210,126,30)},
+}
 
-def render_front(grid, neta, band_cols=None):
+def render_front(grid, neta, band_cols=None, overlay=None):
     pal = {**RICE, **{k: v for k, v in neta.items() if k != "band"}}
     im = Image.new("RGBA", (16, 16))
-    for y, row in enumerate(grid):
-        for x, ch in enumerate(row):
-            if ch == ".":
-                continue
-            if band_cols and x in band_cols:
-                im.putpixel((x, y), neta["band"] + (255,))
-            else:
-                im.putpixel((x, y), pal[ch] + (255,))
+    def put_grid(g, use_band):
+        for y, row in enumerate(g):
+            for x, ch in enumerate(row):
+                if ch == ".":
+                    continue
+                if use_band and band_cols and x in band_cols:
+                    im.putpixel((x, y), neta["band"] + (255,))
+                else:
+                    im.putpixel((x, y), pal[ch] + (255,))
+    put_grid(grid, True)
+    if overlay:
+        put_grid(overlay, False)
     return im
 
 # ============================================================
@@ -171,18 +201,22 @@ def main():
     PREVIEWS.mkdir(parents=True, exist_ok=True)
     for name, neta in NETA_FRONT.items():
         has_band = "band" in neta
+        ov = OVERLAYS.get(name)
         frames = [
-            render_front(GRID_STRETCH, neta, BAND_COLS["stretch"] if has_band else None),
-            render_front(GRID_SCRUNCH, neta, BAND_COLS["scrunch"] if has_band else None),
+            render_front(GRID_STRETCH, neta, BAND_COLS["stretch"] if has_band else None,
+                         ov["stretch"] if ov else None),
+            render_front(GRID_SCRUNCH, neta, BAND_COLS["scrunch"] if has_band else None,
+                         ov["scrunch"] if ov else None),
         ]
         save_sheet(frames, SHEETS / f"{name}-front.png")
         save_gif(frames, PREVIEWS / f"{name}-front.gif", scale=15)
-    ikura_frames = [
-        render_front(GRID_GUNKAN_STRETCH, IKURA),
-        render_front(GRID_GUNKAN_SCRUNCH, IKURA),
-    ]
-    save_sheet(ikura_frames, SHEETS / "ikura-front.png")
-    save_gif(ikura_frames, PREVIEWS / "ikura-front.gif", scale=15)
+    for name, neta in NETA_GUNKAN.items():
+        frames = [
+            render_front(GRID_GUNKAN_STRETCH, neta),
+            render_front(GRID_GUNKAN_SCRUNCH, neta),
+        ]
+        save_sheet(frames, SHEETS / f"{name}-front.png")
+        save_gif(frames, PREVIEWS / f"{name}-front.gif", scale=15)
     for name, neta in NETA_ISO.items():
         frames = [render_iso(neta, False), render_iso(neta, True)]
         save_sheet(frames, SHEETS / f"{name}-iso.png")
