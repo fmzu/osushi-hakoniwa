@@ -69,6 +69,9 @@
   .card.unknown .nm,.card.unknown .sk{color:#D9A8B5}
   .card.seen .nm,.card.seen .sk{color:#C98A96}
   .card .rar{color:#E8B23E;font-size:11px;letter-spacing:1px}
+  .znav{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+  .znav .pg{color:#C98A96;font-size:12px}
+  .znav button:disabled{opacity:.35;box-shadow:none}
   .close{display:block;margin:14px auto 0}
 </style>
 </head>
@@ -90,6 +93,11 @@
     <h2>すしいもむし ずかん</h2>
     <div class="cnt" id="zcnt2"></div>
     <div class="cards" id="cards"></div>
+    <div class="znav">
+      <button id="zPrev">◀ まえ</button>
+      <span class="pg" id="zPageNum"></span>
+      <button id="zNext">つぎ ▶</button>
+    </div>
     <button class="close" id="closeZukan">とじる</button>
   </div>
 </div>
@@ -417,9 +425,12 @@ function updateZukanCount(){
   document.getElementById('zcnt2').textContent =
     `みかけた ${state.seen.size}/${SPECIES.length} ・ なかよし ${state.friends.size}/${SPECIES.length}`;
 }
+const ZUKAN_PAGE_SIZE = 6;
+let zukanPage = 0;
+function zukanPageCount(){ return Math.ceil(SPECIES.length / ZUKAN_PAGE_SIZE); }
 function renderZukan(){
   cards.replaceChildren();
-  for (const sp of SPECIES){
+  for (const sp of SPECIES.slice(zukanPage*ZUKAN_PAGE_SIZE, (zukanPage+1)*ZUKAN_PAGE_SIZE)){
     const friend = state.friends.has(sp.id);
     const seen = state.seen.has(sp.id);
     const card = document.createElement('div');
@@ -437,9 +448,14 @@ function renderZukan(){
     card.append(img, rar, nm, sk);
     cards.append(card);
   }
+  document.getElementById('zPageNum').textContent = (zukanPage+1) + ' / ' + zukanPageCount();
+  document.getElementById('zPrev').disabled = zukanPage === 0;
+  document.getElementById('zNext').disabled = zukanPage >= zukanPageCount()-1;
 }
-document.getElementById('openZukan').onclick = ()=>{ renderZukan(); zukan.classList.add('open'); };
+document.getElementById('openZukan').onclick = ()=>{ zukanPage = 0; renderZukan(); zukan.classList.add('open'); };
 document.getElementById('closeZukan').onclick = ()=>zukan.classList.remove('open');
+document.getElementById('zPrev').onclick = ()=>{ if (zukanPage > 0){ zukanPage--; renderZukan(); } };
+document.getElementById('zNext').onclick = ()=>{ if (zukanPage < zukanPageCount()-1){ zukanPage++; renderZukan(); } };
 zukan.addEventListener('pointerdown', e=>{ if (e.target===zukan) zukan.classList.remove('open'); });
 updateZukanCount();
 
