@@ -46,11 +46,16 @@
     padding:6px 14px;box-shadow:0 2px 0 #E9B7C4;cursor:pointer;
   }
   button:active{transform:translateY(2px);box-shadow:none}
-  #zukan{
+  #zukan,#wallModal{
     position:fixed;inset:0;background:rgba(138,90,72,.35);
     display:none;align-items:center;justify-content:center;padding:16px;z-index:10;
   }
-  #zukan.open{display:flex}
+  #zukan.open,#wallModal.open{display:flex}
+  .swatches{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .swatch{border:3px solid #fff;border-radius:12px;padding:8px;cursor:pointer;box-shadow:0 2px 0 #E9B7C4;text-align:center}
+  .swatch.on{border-color:#E06A3C}
+  .swatch .chip{height:36px;border-radius:8px;margin-bottom:6px}
+  .swatch .nm{color:#8A5A48;font-size:13px}
   .book{
     background:#FFF7F9;border:4px solid #fff;border-radius:16px;
     box-shadow:0 6px 0 #E9B7C4;padding:16px;width:100%;max-width:420px;
@@ -85,6 +90,7 @@
 <div class="bar">
   <span>おすし: <b id="count">0</b> かん</span>
   <button id="bell">🔔 よぶ</button>
+  <button id="openWall">🎨 かべ</button>
   <button id="openZukan">ずかん <b id="zcnt"></b></button>
 </div>
 
@@ -99,6 +105,14 @@
       <button id="zNext">つぎ ▶</button>
     </div>
     <button class="close" id="closeZukan">とじる</button>
+  </div>
+</div>
+
+<div id="wallModal">
+  <div class="book">
+    <h2>かべの もよう</h2>
+    <div class="swatches" id="swatches"></div>
+    <button class="close" id="closeWall">とじる</button>
   </div>
 </div>
 
@@ -241,20 +255,29 @@ const store = {
     try {
       const v2 = JSON.parse(localStorage.getItem('osushi-zukan-v2'));
       if (v2) return { seen:new Set(v2.seen||[]), friends:new Set(v2.friends||[]),
-                       greet:v2.greet||{}, lastVisit:v2.lastVisit||0 };
+                       greet:v2.greet||{}, lastVisit:v2.lastVisit||0, wall:v2.wall||'sakura' };
       const v1 = JSON.parse(localStorage.getItem('osushi-zukan')||'[]');
-      return { seen:new Set(v1), friends:new Set(v1), greet:{}, lastVisit:0 };
-    } catch(e){ return { seen:new Set(), friends:new Set(), greet:{}, lastVisit:0 }; }
+      return { seen:new Set(v1), friends:new Set(v1), greet:{}, lastVisit:0, wall:'sakura' };
+    } catch(e){ return { seen:new Set(), friends:new Set(), greet:{}, lastVisit:0, wall:'sakura' }; }
   },
   save(st){
     try {
       localStorage.setItem('osushi-zukan-v2', JSON.stringify({
-        seen:[...st.seen], friends:[...st.friends], greet:st.greet, lastVisit:st.lastVisit
+        seen:[...st.seen], friends:[...st.friends], greet:st.greet, lastVisit:st.lastVisit, wall:st.wall
       }));
     } catch(e){}
   }
 };
 const state = store.load();
+const WALLS = [
+  { id:'sakura', name:'さくら',     wall:'#FFD0DE', line:'#EFA9C0', base:'#E59AAF' },
+  { id:'woodL',  name:'きの枠(明)', wall:'#D8B083', line:'#BE9560', base:'#9E7544' },
+  { id:'woodD',  name:'きの枠(暗)', wall:'#B5895A', line:'#9A6F44', base:'#7A5230' },
+  { id:'mint',   name:'ミント',     wall:'#D9EEDC', line:'#B2DBBA', base:'#93C79E' },
+  { id:'sora',   name:'そら',       wall:'#D6ECF7', line:'#AAD4EC', base:'#88BEDD' },
+  { id:'yozora', name:'よぞら',     wall:'#3A4668', line:'#2C3652', base:'#5A6788' },
+];
+function currentWall(){ return WALLS.find(w => w.id === state.wall) || WALLS[0]; }
 
 // ============ ワールド ============
 const W = 160, H = 144, GROUND_TOP = 28;
@@ -344,11 +367,15 @@ function drawHeart(x, y, a){
   ctx.globalAlpha = 1;
 }
 function draw(){
-  ctx.fillStyle = '#FFF4F7'; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle = '#FFE3EA';
+  ctx.fillStyle = '#FFEAF1'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#FBD3E0';
   for (let y=4; y<H; y+=12)
     for (let x=(y/12%2?10:4); x<W; x+=12) ctx.fillRect(x,y,1,1);
-  ctx.fillStyle = '#FBD9E2'; ctx.fillRect(0, GROUND_TOP-2, W, 1);
+  const cw = currentWall();
+  ctx.fillStyle = cw.wall; ctx.fillRect(0, 0, W, GROUND_TOP-2);
+  ctx.fillStyle = cw.line;
+  for (let x=8; x<W; x+=16) ctx.fillRect(x, 0, 1, GROUND_TOP-2);
+  ctx.fillStyle = cw.base; ctx.fillRect(0, GROUND_TOP-2, W, 1);
   const sorted = [...sushis].sort((a,b)=>a.y-b.y);
   for (const s of sorted){
     ctx.drawImage(s.sp.spr[String(s.dir)][s.pause>0 ? 0 : s.frame], Math.round(s.x), Math.round(s.y));
@@ -457,6 +484,25 @@ document.getElementById('closeZukan').onclick = ()=>zukan.classList.remove('open
 document.getElementById('zPrev').onclick = ()=>{ if (zukanPage > 0){ zukanPage--; renderZukan(); } };
 document.getElementById('zNext').onclick = ()=>{ if (zukanPage < zukanPageCount()-1){ zukanPage++; renderZukan(); } };
 zukan.addEventListener('pointerdown', e=>{ if (e.target===zukan) zukan.classList.remove('open'); });
+const wallModal = document.getElementById('wallModal');
+function renderWalls(){
+  const el = document.getElementById('swatches');
+  el.replaceChildren();
+  for (const w of WALLS){
+    const s = document.createElement('div');
+    s.className = 'swatch' + (w.id === state.wall ? ' on' : '');
+    const chip = document.createElement('div'); chip.className = 'chip';
+    chip.style.background = w.wall;
+    chip.style.borderBottom = '4px solid ' + w.base;
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = w.name;
+    s.append(chip, nm);
+    s.onclick = ()=>{ state.wall = w.id; store.save(state); renderWalls(); };
+    el.append(s);
+  }
+}
+document.getElementById('openWall').onclick = ()=>{ renderWalls(); wallModal.classList.add('open'); };
+document.getElementById('closeWall').onclick = ()=>wallModal.classList.remove('open');
+wallModal.addEventListener('pointerdown', e=>{ if (e.target===wallModal) wallModal.classList.remove('open'); });
 updateZukanCount();
 
 // ============ 来店・退店(タイマー) ============
