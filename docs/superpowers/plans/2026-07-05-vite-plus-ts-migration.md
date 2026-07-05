@@ -21,6 +21,7 @@
   - `walls.ts` は `store.ts` を import しない。`currentWall(wallId: string)` が wallId を引数で受け、呼び出し側（render.ts）が `state.wall` を渡す。
 - **DOMイベント配線は `initX()` 関数に隔離する（テスト安全化のための最小限の構造化）**: 各UIモジュール（input / bell / zukan / wallModal）の `addEventListener` / `.onclick` / `setInterval` 配線は、モジュール読み込み時の副作用にせず、export した `initX()` の中に入れる。`main.ts` が起動時に `initX()` を呼ぶ。純粋ロジック関数（`greet` `renderZukan` `updateZukanCount` `renderWalls` `pickSpecies` `currentWall`）は個別に export し、単体テストから直接呼べるようにする。**挙動は不変**（配線は起動時に走る）。
 - **test-enabling な null ガードのみ許可**: `showBanner` / `updateZukanCount` / `spawn`・`leave` の count 更新 / `canvas.ts` の `imageSmoothingEnabled` は、対象要素が無い（jsdom 単体テスト）場合に落ちないよう null ガードする。実ブラウザでは要素が必ず在るので**挙動は不変**。
+- **型は `interface` を使わず `type` で統一する**（宣言マージ・継承を使わないため。`types.ts` 全体を `type` エイリアスで揃える）。
 - **vp コマンド名は Task 1 で実物確定する**。以降のタスクで `vp dev` `vp build` `vp preview` `vp check` `vp test run` と書いた箇所は、すべて「Task 1 で確定したコマンド名」を使うこと。相違があれば Task 1 の記録に従って読み替える。
 - **push はしない（Stage E まで）**。各タスク末尾で `git commit` する。ローカルの各 commit を push するかは**主導者（メイン）が判断**する。Stage E のデプロイ設定でのみ push を前提にする。
 
@@ -254,20 +255,20 @@ welcomeBack 内の `AWAY_MS` はローカル宣言を消してこの import を�
 ```ts
 export type Grid = string[];
 
-export interface Overlay {
+export type Overlay = {
   stretch: Grid;
   scrunch: Grid;
-}
+};
 
-export interface Shape {
+export type Shape = {
   stretch: Grid;
   scrunch: Grid;
   band?: { stretch: [number, number]; scrunch: [number, number] };
-}
+};
 
 export type Palette = Record<string, string>;
 
-export interface Species {
+export type Species = {
   id: string;
   name: string;
   seikaku: string;
@@ -283,17 +284,17 @@ export interface Species {
   driftP: number;
   spr?: Record<string, [HTMLCanvasElement, HTMLCanvasElement]>;
   shadow?: HTMLCanvasElement;
-}
+};
 
-export interface Wall {
+export type Wall = {
   id: string;
   name: string;
   wall: string;
   line: string;
   base: string;
-}
+};
 
-export interface Sushi {
+export type Sushi = {
   sp: Species;
   x: number;
   y: number;
@@ -301,21 +302,21 @@ export interface Sushi {
   frame: number;
   timer: number;
   pause: number;
-}
+};
 
-export interface Heart {
+export type Heart = {
   x: number;
   y: number;
   life: number;
-}
+};
 
-export interface SaveState {
+export type SaveState = {
   seen: Set<string>;
   friends: Set<string>;
   greet: Record<string, number>;
   lastVisit: number;
   wall: string;
-}
+};
 ```
 
 - [ ] **Step 2: dev 確認**（型ファイル追加のみ。`vp dev` が起動すればOK）
