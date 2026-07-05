@@ -21,7 +21,7 @@
   - `walls.ts` は `store.ts` を import しない。`currentWall(wallId: string)` が wallId を引数で受け、呼び出し側（render.ts）が `state.wall` を渡す。
 - **DOMイベント配線は `initX()` 関数に隔離する（テスト安全化のための最小限の構造化）**: 各UIモジュール（input / bell / zukan / wallModal）の `addEventListener` / `.onclick` / `setInterval` 配線は、モジュール読み込み時の副作用にせず、export した `initX()` の中に入れる。`main.ts` が起動時に `initX()` を呼ぶ。純粋ロジック関数（`greet` `renderZukan` `updateZukanCount` `renderWalls` `pickSpecies` `currentWall`）は個別に export し、単体テストから直接呼べるようにする。**挙動は不変**（配線は起動時に走る）。
 - **test-enabling な null ガードのみ許可**: `showBanner` / `updateZukanCount` / `spawn`・`leave` の count 更新 / `canvas.ts` の `imageSmoothingEnabled` は、対象要素が無い（jsdom 単体テスト）場合に落ちないよう null ガードする。実ブラウザでは要素が必ず在るので**挙動は不変**。
-- **型は `interface` を使わず `type` で統一する**（宣言マージ・継承を使わないため。`types.ts` 全体を `type` エイリアスで揃える）。
+- **型は `interface` を使わず `type` で統一する**。これは `software-design` スキル「Type Honesty」の明文ルール（「TypeScript の `interface` 構文は使わない、`type` で表す」「不変データ＋ロジック不要 ⇒ type」）に準拠。`types.ts` 全体を `type` エイリアスで揃える。
 - **vp コマンド名は Task 1 で実物確定する**。以降のタスクで `vp dev` `vp build` `vp preview` `vp check` `vp test run` と書いた箇所は、すべて「Task 1 で確定したコマンド名」を使うこと。相違があれば Task 1 の記録に従って読み替える。
 - **push はしない（Stage E まで）**。各タスク末尾で `git commit` する。ローカルの各 commit を push するかは**主導者（メイン）が判断**する。Stage E のデプロイ設定でのみ push を前提にする。
 
