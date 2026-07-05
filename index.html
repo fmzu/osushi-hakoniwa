@@ -40,10 +40,14 @@
     color:#8A5A48;font-size:13px;
   }
   .bar b{color:#E06A3C}
+  @media (max-width:430px){
+    .bar{flex-wrap:wrap;justify-content:center}
+    .bar>span{flex-basis:100%;text-align:center}
+  }
   button{
     font-family:inherit;font-size:13px;color:#8A5A48;
     background:#fff;border:2px solid #E9B7C4;border-radius:10px;
-    padding:6px 14px;box-shadow:0 2px 0 #E9B7C4;cursor:pointer;
+    padding:6px 14px;box-shadow:0 2px 0 #E9B7C4;cursor:pointer;white-space:nowrap;
   }
   button:active{transform:translateY(2px);box-shadow:none}
   #zukan,#wallModal{
