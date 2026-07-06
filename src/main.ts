@@ -7,6 +7,7 @@ import { WALLS, currentWall } from "./walls";
 import { store, state } from "./store";
 import { showBanner } from "./banner";
 import { updateZukanCount, renderZukan, initZukan } from "./zukan";
+import { sushis, hearts, pickSpecies, spawn, markSeen, visit, leave, tick } from "./world";
 
 bakeAllSprites(SPECIES);
 
@@ -16,92 +17,6 @@ cv.width = W;
 cv.height = H;
 const ctx = cv.getContext("2d");
 ctx.imageSmoothingEnabled = false;
-
-const sushis = [],
-  hearts = [];
-
-function pickSpecies() {
-  const total = SPECIES.reduce((a, s) => a + RARITY_WEIGHT[s.rarity], 0);
-  let r = Math.random() * total;
-  for (const s of SPECIES) {
-    r -= RARITY_WEIGHT[s.rarity];
-    if (r < 0) return s;
-  }
-  return SPECIES.at(-1);
-}
-function spawn(x, y, sp) {
-  sp = sp || pickSpecies();
-  sushis.push({
-    sp,
-    x: Math.max(2, Math.min(W - 18, x ?? Math.random() * (W - 20))),
-    y: Math.max(
-      GROUND_TOP,
-      Math.min(H - 18, y ?? GROUND_TOP + Math.random() * (H - GROUND_TOP - 18)),
-    ),
-    dir: Math.random() < 0.5 ? 1 : -1,
-    frame: Math.random() < 0.5 ? 0 : 1,
-    timer: Math.random() * sp.step,
-    pause: 0,
-  });
-  document.getElementById("count").textContent = sushis.length;
-}
-function markSeen(sp) {
-  if (state.seen.has(sp.id)) return;
-  state.seen.add(sp.id);
-  store.save(state);
-  if (sp.rarity === 3) {
-    showBanner("✨レアはっけん！！ " + sp.name + "✨");
-    for (let i = 0; i < 10; i++)
-      hearts.push({ x: 30 + Math.random() * 100, y: GROUND_TOP + Math.random() * 80, life: 1 });
-  } else {
-    showBanner("みかけた！ " + sp.name);
-  }
-  updateZukanCount();
-}
-function visit() {
-  if (sushis.length >= MAX_SUSHI) return false;
-  const sp = pickSpecies();
-  spawn(undefined, undefined, sp);
-  markSeen(sp);
-  return true;
-}
-function leave() {
-  if (sushis.length <= 3) return;
-  const i = Math.floor(Math.random() * sushis.length);
-  sushis.splice(i, 1);
-  document.getElementById("count").textContent = sushis.length;
-}
-
-function tick(dt) {
-  for (const s of sushis) {
-    const p = s.sp;
-    if (s.pause > 0) {
-      s.pause -= dt;
-      continue;
-    }
-    s.timer += dt;
-    if (s.timer < p.step) continue;
-    s.timer -= p.step;
-    s.frame = 1 - s.frame;
-    if (s.frame === 0) {
-      s.x += 2 * s.dir;
-      if (Math.random() < p.driftP) s.y += Math.random() < 0.5 ? 1 : -1;
-      s.y = Math.max(GROUND_TOP, Math.min(H - 18, s.y));
-      if (s.x < 2 || s.x > W - 18) {
-        s.dir *= -1;
-        s.x = Math.max(2, Math.min(W - 18, s.x));
-      } else if (Math.random() < p.flipP) s.dir *= -1;
-      if (Math.random() < p.pauseP)
-        s.pause = p.pauseLen[0] + Math.random() * (p.pauseLen[1] - p.pauseLen[0]);
-      if (Math.random() < p.heartP) hearts.push({ x: s.x + 8, y: s.y - 2, life: 1 });
-    }
-  }
-  for (let i = hearts.length - 1; i >= 0; i--) {
-    hearts[i].y -= dt * 0.008;
-    hearts[i].life -= dt / 1200;
-    if (hearts[i].life <= 0) hearts.splice(i, 1);
-  }
-}
 
 function drawHeart(x, y, a) {
   ctx.globalAlpha = a;
