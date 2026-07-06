@@ -1,6 +1,6 @@
 // @ts-nocheck
 import "./style.css";
-import { W, H, GROUND_TOP, MAX_SUSHI, BELL_CD, ZUKAN_PAGE_SIZE, AWAY_MS } from "./constants";
+import { W, H, GROUND_TOP, MAX_SUSHI, ZUKAN_PAGE_SIZE, AWAY_MS } from "./constants";
 import { bakeAllSprites } from "./sprites";
 import { SPECIES, RARITY_WEIGHT, GREET_NEED } from "./species";
 import { WALLS, currentWall } from "./walls";
@@ -11,6 +11,7 @@ import { initWallModal } from "./wallModal";
 import { sushis, hearts, pickSpecies, spawn, markSeen, visit, leave, tick } from "./world";
 import { cv, ctx } from "./canvas";
 import { draw } from "./render";
+import { initBell } from "./bell";
 
 bakeAllSprites(SPECIES);
 
@@ -60,29 +61,7 @@ cv.addEventListener("pointerdown", (e) => {
 });
 
 // ============ 呼び鈴 ============
-const bell = document.getElementById("bell");
-let bellLeft = 0;
-bell.addEventListener("click", () => {
-  if (bellLeft > 0) return;
-  bellLeft = BELL_CD;
-  bell.disabled = true;
-  setTimeout(
-    () => {
-      visit();
-    },
-    1500 + Math.random() * 2500,
-  ); // 少し間を置いて来店
-});
-setInterval(() => {
-  if (bellLeft <= 0) return;
-  bellLeft--;
-  if (bellLeft > 0) {
-    bell.textContent = `🔔 (${bellLeft})`;
-  } else {
-    bell.textContent = "🔔 よぶ";
-    bell.disabled = false;
-  }
-}, 1000);
+initBell();
 
 // ============ ずかん ============
 updateZukanCount();
