@@ -4,46 +4,9 @@ import { W, H, GROUND_TOP, MAX_SUSHI, BELL_CD, ZUKAN_PAGE_SIZE, AWAY_MS } from "
 import { bakeAllSprites } from "./sprites";
 import { SPECIES, RARITY_WEIGHT, GREET_NEED } from "./species";
 import { WALLS, currentWall } from "./walls";
+import { store, state } from "./store";
 
 bakeAllSprites(SPECIES);
-
-// ============ 保存(localStorage / 失敗時はメモリのみ) ============
-// v2形式: { seen:[id], friends:[id], greet:{id:回数}, lastVisit:エポックms }
-// 旧v1(osushi-zukan: 発見ID配列)は seen/friends 両方へ移行（発見済み=なかよし扱い）
-const store = {
-  load() {
-    try {
-      const v2 = JSON.parse(localStorage.getItem("osushi-zukan-v2"));
-      if (v2)
-        return {
-          seen: new Set(v2.seen || []),
-          friends: new Set(v2.friends || []),
-          greet: v2.greet || {},
-          lastVisit: v2.lastVisit || 0,
-          wall: v2.wall || "sakura",
-        };
-      const v1 = JSON.parse(localStorage.getItem("osushi-zukan") || "[]");
-      return { seen: new Set(v1), friends: new Set(v1), greet: {}, lastVisit: 0, wall: "sakura" };
-    } catch (e) {
-      return { seen: new Set(), friends: new Set(), greet: {}, lastVisit: 0, wall: "sakura" };
-    }
-  },
-  save(st) {
-    try {
-      localStorage.setItem(
-        "osushi-zukan-v2",
-        JSON.stringify({
-          seen: [...st.seen],
-          friends: [...st.friends],
-          greet: st.greet,
-          lastVisit: st.lastVisit,
-          wall: st.wall,
-        }),
-      );
-    } catch (e) {}
-  },
-};
-const state = store.load();
 
 // ============ ワールド ============
 const cv = document.getElementById("cv");
