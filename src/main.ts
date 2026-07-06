@@ -1,5 +1,6 @@
 // @ts-nocheck
 import "./style.css";
+import { W, H, GROUND_TOP, MAX_SUSHI, BELL_CD, ZUKAN_PAGE_SIZE, AWAY_MS } from "./constants";
 // ============ 形状グリッド ============
 const NIGIRI = {
   stretch: [
@@ -397,9 +398,6 @@ function currentWall() {
 }
 
 // ============ ワールド ============
-const W = 160,
-  H = 144,
-  GROUND_TOP = 28;
 const cv = document.getElementById("cv");
 cv.width = W;
 cv.height = H;
@@ -434,7 +432,6 @@ function spawn(x, y, sp) {
   });
   document.getElementById("count").textContent = sushis.length;
 }
-const MAX_SUSHI = 14;
 function markSeen(sp) {
   if (state.seen.has(sp.id)) return;
   state.seen.add(sp.id);
@@ -589,7 +586,6 @@ cv.addEventListener("pointerdown", (e) => {
 
 // ============ 呼び鈴 ============
 const bell = document.getElementById("bell");
-const BELL_CD = 90; // クールダウン秒
 let bellLeft = 0;
 bell.addEventListener("click", () => {
   if (bellLeft > 0) return;
@@ -621,7 +617,6 @@ function updateZukanCount() {
   document.getElementById("zcnt2").textContent =
     `みかけた ${state.seen.size}/${SPECIES.length} ・ なかよし ${state.friends.size}/${SPECIES.length}`;
 }
-const ZUKAN_PAGE_SIZE = 6;
 let zukanPage = 0;
 function zukanPageCount() {
   return Math.ceil(SPECIES.length / ZUKAN_PAGE_SIZE);
@@ -733,7 +728,6 @@ scheduleLeave();
 
 // ============ 留守中の来店 + 初回 ============
 (function welcomeBack() {
-  const AWAY_MS = 20 * 60 * 1000; // 20分に1匹
   let arrivals = 0;
   if (state.lastVisit > 0) {
     arrivals = Math.min(5, Math.floor((Date.now() - state.lastVisit) / AWAY_MS));
