@@ -13,6 +13,7 @@ import { ctx } from "./canvas";
 import { draw } from "./render";
 import { initBell } from "./bell";
 import { initInput } from "./input";
+import { scheduleVisit, scheduleLeave, welcomeBack, startLastVisitSave } from "./schedule";
 
 bakeAllSprites(SPECIES);
 
@@ -38,45 +39,5 @@ initZukan();
 initWallModal();
 
 // ============ 来店・退店(タイマー) ============
-function scheduleVisit() {
-  setTimeout(
-    () => {
-      visit();
-      scheduleVisit();
-    },
-    60000 + Math.random() * 60000,
-  ); // 60〜120秒
-}
-function scheduleLeave() {
-  setTimeout(
-    () => {
-      leave();
-      scheduleLeave();
-    },
-    120000 + Math.random() * 120000,
-  ); // 2〜4分
-}
-scheduleVisit();
-scheduleLeave();
-
-// ============ 留守中の来店 + 初回 ============
-(function welcomeBack() {
-  let arrivals = 0;
-  if (state.lastVisit > 0) {
-    arrivals = Math.min(5, Math.floor((Date.now() - state.lastVisit) / AWAY_MS));
-  }
-  for (let i = 0; i < arrivals; i++) visit();
-  if (arrivals > 0) setTimeout(() => showBanner("るすのあいだに 来てたみたい"), 600);
-  while (sushis.length < 3) visit(); // 初回・過疎時の最低保証
-})();
-// 最終訪問時刻を定期保存
-setInterval(() => {
-  state.lastVisit = Date.now();
-  store.save(state);
-}, 30000);
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    state.lastVisit = Date.now();
-    store.save(state);
-  }
-});
+// scheduleVisit/scheduleLeave/welcomeBack/startLastVisitSave は ./schedule に切り出し済み
+// 起動時の呼び出し配置は Task 19 で行う
