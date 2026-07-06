@@ -5,6 +5,7 @@ import { bakeAllSprites } from "./sprites";
 import { SPECIES, RARITY_WEIGHT, GREET_NEED } from "./species";
 import { WALLS, currentWall } from "./walls";
 import { store, state } from "./store";
+import { showBanner } from "./banner";
 
 bakeAllSprites(SPECIES);
 
@@ -153,14 +154,6 @@ let last = performance.now();
 })(last);
 
 // ============ はっけん ============
-const banner = document.getElementById("banner");
-let bannerTimer = null;
-function showBanner(text) {
-  banner.textContent = text;
-  banner.classList.add("show");
-  clearTimeout(bannerTimer);
-  bannerTimer = setTimeout(() => banner.classList.remove("show"), 1800);
-}
 function greet(s) {
   const sp = s.sp;
   hearts.push({ x: s.x + 8, y: s.y - 2, life: 1 });
