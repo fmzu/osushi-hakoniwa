@@ -2,16 +2,17 @@
 import "./style.css";
 import { W, H, GROUND_TOP, MAX_SUSHI, ZUKAN_PAGE_SIZE, AWAY_MS } from "./constants";
 import { bakeAllSprites } from "./sprites";
-import { SPECIES, RARITY_WEIGHT, GREET_NEED } from "./species";
+import { SPECIES, RARITY_WEIGHT } from "./species";
 import { WALLS, currentWall } from "./walls";
 import { store, state } from "./store";
 import { showBanner } from "./banner";
 import { updateZukanCount, renderZukan, initZukan } from "./zukan";
 import { initWallModal } from "./wallModal";
-import { sushis, hearts, pickSpecies, spawn, markSeen, visit, leave, tick } from "./world";
-import { cv, ctx } from "./canvas";
+import { sushis, pickSpecies, spawn, markSeen, visit, leave, tick } from "./world";
+import { ctx } from "./canvas";
 import { draw } from "./render";
 import { initBell } from "./bell";
+import { initInput } from "./input";
 
 bakeAllSprites(SPECIES);
 
@@ -26,39 +27,7 @@ let last = performance.now();
 })(last);
 
 // ============ はっけん ============
-function greet(s) {
-  const sp = s.sp;
-  hearts.push({ x: s.x + 8, y: s.y - 2, life: 1 });
-  if (state.friends.has(sp.id)) return;
-  state.greet[sp.id] = (state.greet[sp.id] || 0) + 1;
-  if (sp.seikaku === "はずかしがりや") {
-    // 逃げる素振り
-    s.dir *= -1;
-    s.pause = 0;
-    s.x = Math.max(2, Math.min(W - 18, s.x + 6 * s.dir));
-  }
-  if (state.greet[sp.id] >= GREET_NEED[sp.seikaku]) {
-    state.friends.add(sp.id);
-    showBanner("なかよしになった！ " + sp.name);
-    for (let i = 0; i < 6; i++)
-      hearts.push({ x: s.x + 4 + Math.random() * 8, y: s.y - 2 - Math.random() * 4, life: 1 });
-    updateZukanCount();
-  }
-  store.save(state);
-}
-
-cv.addEventListener("pointerdown", (e) => {
-  const r = cv.getBoundingClientRect();
-  const px = ((e.clientX - r.left) / r.width) * W,
-    py = ((e.clientY - r.top) / r.height) * H;
-  const sorted = [...sushis].sort((a, b) => b.y - a.y); // 手前のコから当たり判定
-  for (const s of sorted) {
-    if (px >= s.x && px < s.x + 16 && py >= s.y && py < s.y + 16) {
-      greet(s);
-      return;
-    }
-  }
-});
+initInput();
 
 // ============ 呼び鈴 ============
 initBell();
