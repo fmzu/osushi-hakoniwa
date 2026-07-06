@@ -7,6 +7,7 @@ import { WALLS, currentWall } from "./walls";
 import { store, state } from "./store";
 import { showBanner } from "./banner";
 import { updateZukanCount, renderZukan, initZukan } from "./zukan";
+import { initWallModal } from "./wallModal";
 import { sushis, hearts, pickSpecies, spawn, markSeen, visit, leave, tick } from "./world";
 import { cv, ctx } from "./canvas";
 import { draw } from "./render";
@@ -84,39 +85,9 @@ setInterval(() => {
 }, 1000);
 
 // ============ ずかん ============
-const wallModal = document.getElementById("wallModal");
-function renderWalls() {
-  const el = document.getElementById("swatches");
-  el.replaceChildren();
-  for (const w of WALLS) {
-    const s = document.createElement("div");
-    s.className = "swatch" + (w.id === state.wall ? " on" : "");
-    const chip = document.createElement("div");
-    chip.className = "chip";
-    chip.style.background = w.wall;
-    chip.style.borderBottom = "4px solid " + w.base;
-    const nm = document.createElement("div");
-    nm.className = "nm";
-    nm.textContent = w.name;
-    s.append(chip, nm);
-    s.onclick = () => {
-      state.wall = w.id;
-      store.save(state);
-      renderWalls();
-    };
-    el.append(s);
-  }
-}
-document.getElementById("openWall").onclick = () => {
-  renderWalls();
-  wallModal.classList.add("open");
-};
-document.getElementById("closeWall").onclick = () => wallModal.classList.remove("open");
-wallModal.addEventListener("pointerdown", (e) => {
-  if (e.target === wallModal) wallModal.classList.remove("open");
-});
 updateZukanCount();
 initZukan();
+initWallModal();
 
 // ============ 来店・退店(タイマー) ============
 function scheduleVisit() {
