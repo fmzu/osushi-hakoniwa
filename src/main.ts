@@ -3,6 +3,7 @@ import "./style.css";
 import { W, H, GROUND_TOP, MAX_SUSHI, BELL_CD, ZUKAN_PAGE_SIZE, AWAY_MS } from "./constants";
 import { bakeAllSprites } from "./sprites";
 import { SPECIES, RARITY_WEIGHT, GREET_NEED } from "./species";
+import { WALLS, currentWall } from "./walls";
 
 bakeAllSprites(SPECIES);
 
@@ -43,17 +44,6 @@ const store = {
   },
 };
 const state = store.load();
-const WALLS = [
-  { id: "sakura", name: "さくら", wall: "#FFD0DE", line: "#EFA9C0", base: "#E59AAF" },
-  { id: "woodL", name: "きの枠(明)", wall: "#D8B083", line: "#BE9560", base: "#9E7544" },
-  { id: "woodD", name: "きの枠(暗)", wall: "#B5895A", line: "#9A6F44", base: "#7A5230" },
-  { id: "mint", name: "ミント", wall: "#D9EEDC", line: "#B2DBBA", base: "#93C79E" },
-  { id: "sora", name: "そら", wall: "#D6ECF7", line: "#AAD4EC", base: "#88BEDD" },
-  { id: "yozora", name: "よぞら", wall: "#3A4668", line: "#2C3652", base: "#5A6788" },
-];
-function currentWall() {
-  return WALLS.find((w) => w.id === state.wall) || WALLS[0];
-}
 
 // ============ ワールド ============
 const cv = document.getElementById("cv");
@@ -173,7 +163,7 @@ function draw() {
   ctx.fillStyle = "#FBD3E0";
   for (let y = 4; y < H; y += 12)
     for (let x = (y / 12) % 2 ? 10 : 4; x < W; x += 12) ctx.fillRect(x, y, 1, 1);
-  const cw = currentWall();
+  const cw = currentWall(state.wall);
   ctx.fillStyle = cw.wall;
   ctx.fillRect(0, 0, W, GROUND_TOP - 2);
   ctx.fillStyle = cw.line;
