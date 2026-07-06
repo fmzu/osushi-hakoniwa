@@ -8,15 +8,11 @@ import { store, state } from "./store";
 import { showBanner } from "./banner";
 import { updateZukanCount, renderZukan, initZukan } from "./zukan";
 import { sushis, hearts, pickSpecies, spawn, markSeen, visit, leave, tick } from "./world";
+import { cv, ctx } from "./canvas";
 
 bakeAllSprites(SPECIES);
 
 // ============ ワールド ============
-const cv = document.getElementById("cv");
-cv.width = W;
-cv.height = H;
-const ctx = cv.getContext("2d");
-ctx.imageSmoothingEnabled = false;
 
 function drawHeart(x, y, a) {
   ctx.globalAlpha = a;
