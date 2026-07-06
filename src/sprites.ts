@@ -133,7 +133,7 @@ export function bake(
   c.height = 16;
   const g = c.getContext("2d")!;
   const put = (row: string, y: number) =>
-    [...row].forEach((ch, x) => {
+    row.split("").forEach((ch, x) => {
       if (ch === ".") return;
       g.fillStyle = bandCols && bandCols.includes(x) ? pal.band : pal[ch];
       g.fillRect(flip ? 15 - x : x, y, 1, 1);

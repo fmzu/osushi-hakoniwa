@@ -20,7 +20,7 @@ export const store = {
         lastVisit: 0,
         wall: "sakura",
       };
-    } catch (e) {
+    } catch {
       return {
         seen: new Set<string>(),
         friends: new Set<string>(),
@@ -42,7 +42,9 @@ export const store = {
           wall: st.wall,
         }),
       );
-    } catch (e) {}
+    } catch {
+      // localStorage が使用できない環境では保存をスキップする
+    }
   },
 };
 
