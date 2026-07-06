@@ -6,6 +6,7 @@ import { SPECIES, RARITY_WEIGHT, GREET_NEED } from "./species";
 import { WALLS, currentWall } from "./walls";
 import { store, state } from "./store";
 import { showBanner } from "./banner";
+import { updateZukanCount, renderZukan, initZukan } from "./zukan";
 
 bakeAllSprites(SPECIES);
 
@@ -214,67 +215,6 @@ setInterval(() => {
 }, 1000);
 
 // ============ ずかん ============
-const zukan = document.getElementById("zukan");
-const cards = document.getElementById("cards");
-function updateZukanCount() {
-  document.getElementById("zcnt").textContent = `${state.friends.size}/${SPECIES.length}`;
-  document.getElementById("zcnt2").textContent =
-    `みかけた ${state.seen.size}/${SPECIES.length} ・ なかよし ${state.friends.size}/${SPECIES.length}`;
-}
-let zukanPage = 0;
-function zukanPageCount() {
-  return Math.ceil(SPECIES.length / ZUKAN_PAGE_SIZE);
-}
-function renderZukan() {
-  cards.replaceChildren();
-  for (const sp of SPECIES.slice(zukanPage * ZUKAN_PAGE_SIZE, (zukanPage + 1) * ZUKAN_PAGE_SIZE)) {
-    const friend = state.friends.has(sp.id);
-    const seen = state.seen.has(sp.id);
-    const card = document.createElement("div");
-    card.className = "card" + (friend ? "" : seen ? " seen" : " unknown");
-    const img = document.createElement("img");
-    img.src = (seen ? sp.spr["1"][0] : sp.shadow).toDataURL();
-    const rar = document.createElement("div");
-    rar.className = "rar";
-    rar.textContent = "★".repeat(sp.rarity);
-    const nm = document.createElement("div");
-    nm.className = "nm";
-    nm.textContent = friend ? sp.name : "？？？";
-    const sk = document.createElement("div");
-    sk.className = "sk";
-    sk.textContent = friend
-      ? "せいかく: " + sp.seikaku
-      : seen
-        ? "あいさつして なかよくなろう"
-        : "…だれだろう";
-    card.append(img, rar, nm, sk);
-    cards.append(card);
-  }
-  document.getElementById("zPageNum").textContent = zukanPage + 1 + " / " + zukanPageCount();
-  document.getElementById("zPrev").disabled = zukanPage === 0;
-  document.getElementById("zNext").disabled = zukanPage >= zukanPageCount() - 1;
-}
-document.getElementById("openZukan").onclick = () => {
-  zukanPage = 0;
-  renderZukan();
-  zukan.classList.add("open");
-};
-document.getElementById("closeZukan").onclick = () => zukan.classList.remove("open");
-document.getElementById("zPrev").onclick = () => {
-  if (zukanPage > 0) {
-    zukanPage--;
-    renderZukan();
-  }
-};
-document.getElementById("zNext").onclick = () => {
-  if (zukanPage < zukanPageCount() - 1) {
-    zukanPage++;
-    renderZukan();
-  }
-};
-zukan.addEventListener("pointerdown", (e) => {
-  if (e.target === zukan) zukan.classList.remove("open");
-});
 const wallModal = document.getElementById("wallModal");
 function renderWalls() {
   const el = document.getElementById("swatches");
@@ -307,6 +247,7 @@ wallModal.addEventListener("pointerdown", (e) => {
   if (e.target === wallModal) wallModal.classList.remove("open");
 });
 updateZukanCount();
+initZukan();
 
 // ============ 来店・退店(タイマー) ============
 function scheduleVisit() {
