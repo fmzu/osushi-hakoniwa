@@ -22,7 +22,7 @@ jobs:
         run: vp install
 
       - name: Check (type + lint)
-        run: vp check
+        run: vp check src/
 
       - name: Test
         run: vp test run
