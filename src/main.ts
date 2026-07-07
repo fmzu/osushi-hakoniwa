@@ -8,7 +8,9 @@ import { initInput } from "./input";
 import { initBell } from "./bell";
 import { initWallModal } from "./wallModal";
 import { scheduleVisit, scheduleLeave, welcomeBack, startLastVisitSave } from "./schedule";
+import { initDebugExpose } from "./debugExpose";
 
+initDebugExpose();
 bakeAllSprites(SPECIES);
 
 initInput();
