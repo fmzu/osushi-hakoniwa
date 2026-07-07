@@ -1,0 +1,38 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup vp
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          run-install: false
+
+      - name: Install deps
+        run: vp install
+
+      - name: Check (type + lint)
+        run: vp check
+
+      - name: Test
+        run: vp test run
+
+      - name: Build
+        run: vp build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name osushi-hakoniwa
