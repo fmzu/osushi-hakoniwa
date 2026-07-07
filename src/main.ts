@@ -8,9 +8,11 @@ import { initInput } from "./input";
 import { initBell } from "./bell";
 import { initWallModal } from "./wallModal";
 import { scheduleVisit, scheduleLeave, welcomeBack, startLastVisitSave } from "./schedule";
-import { initDebugExpose } from "./debugExpose";
+if (import.meta.env.DEV) {
+  const { initDebugExpose } = await import("./debugExpose");
+  initDebugExpose();
+}
 
-initDebugExpose();
 bakeAllSprites(SPECIES);
 
 initInput();
