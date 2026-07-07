@@ -1,22 +1,42 @@
 # おすしのはこにわ 🍣
 
-ドット絵のお寿司たちがイモムシみたいにむにむに歩き回る箱庭。依存ゼロのHTML 1枚で動きます。
+ドット絵のお寿司たちがイモムシみたいにむにむに歩き回る箱庭。Vite+ + TypeScript で構築しています。
 
 ## 遊び方
 
-`index.html` をブラウザで開くだけ。お寿司たちは自分のペースでふらっと遊びに来ます（🔔で呼ぶことも）。
+デプロイ済みの本番URL（下記「デプロイ」参照）を開くか、ローカルでは `vp dev`（「開発」参照）で起動します。お寿司たちは自分のペースでふらっと遊びに来ます（🔔で呼ぶことも）。
 住人は12種・レアリティ3段階（★〜★★★）。来ると図鑑に「みかけた」が記録され、
 タップであいさつを重ねると「なかよし」になってプロフィール（なまえ・せいかく）が解放されます。
 せいかくによってなつきやすさが違います（あまえんぼはすぐ、はずかしがりやはなかなか）。
 発見状況は localStorage に保存されます。
 
-`iso.html` はアイソメトリック版。ひし形タイルの床を斜めに移動します（保管版・標準は正面版）。
+`iso.html` はアイソメトリック版。ひし形タイルの床を斜めに移動します（保管版・標準は正面版、依存ゼロの単体HTMLのままブラウザで直接開けます）。
+
+## 開発
+
+Vite+ (`vp`) + TypeScript 構成です。
+
+```
+vp install     # 依存導入
+vp dev         # 開発サーバ
+vp check       # 型 + Lint
+vp test run    # ユニットテスト（Vitest）
+vp build       # 本番ビルド（dist/）
+vp preview     # ビルド成果物をローカル配信
+```
+
+`src/` にモジュール分割（constants/types/sprites/species/walls/store/banner/zukan/world/canvas/render/wallModal/bell/input/schedule/main/debugExpose）。`debugExpose` は開発用デバッグユーティリティで、`import.meta.env.DEV` により本番ビルドからは除外されます。挙動は素HTML版と同一。
+
+## デプロイ
+
+`main` への push で GitHub Actions が `vp check` → `vp test run` → `vp build` → Cloudflare Pages へ自動デプロイします（`.github/workflows/deploy.yml`）。本番ホストは Cloudflare Pages のみです。GitHub Pages（旧・単体HTML版の配信）は本移行に伴い停止しました。
 
 ## 構成
 
 ```
-index.html                  正面ビュー版（標準）
-iso.html                    アイソメトリック版
+index.html                  正面ビュー版（標準、Vite エントリ）
+iso.html                    アイソメトリック版（単体HTML・ビルド不要）
+src/                        正面ビュー版の TypeScript ソース
 tools/generate_sprites.py   スプライト一括生成スクリプト
 assets/sheets/              スプライトシートPNG（16x16 / 32x32, 2フレーム）
 assets/previews/            アニメーションプレビューGIF
