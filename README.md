@@ -25,11 +25,11 @@ vp build       # 本番ビルド（dist/）
 vp preview     # ビルド成果物をローカル配信
 ```
 
-`src/` にモジュール分割（constants/types/sprites/species/walls/store/banner/zukan/world/canvas/render/wallModal/bell/input/schedule/main）。挙動は素HTML版と同一。
+`src/` にモジュール分割（constants/types/sprites/species/walls/store/banner/zukan/world/canvas/render/wallModal/bell/input/schedule/main/debugExpose）。`debugExpose` は開発用デバッグユーティリティで、`import.meta.env.DEV` により本番ビルドからは除外されます。挙動は素HTML版と同一。
 
 ## デプロイ
 
-`main` への push で GitHub Actions が `vp check` → `vp test run` → `vp build` → Cloudflare Pages へ自動デプロイします（`.github/workflows/deploy.yml`）。移行期間中は GitHub Pages 版も併存します。
+`main` への push で GitHub Actions が `vp check` → `vp test run` → `vp build` → Cloudflare Pages へ自動デプロイします（`.github/workflows/deploy.yml`）。本番ホストは Cloudflare Pages のみです。GitHub Pages（旧・単体HTML版の配信）は本移行に伴い停止しました。
 
 ## 構成
 
