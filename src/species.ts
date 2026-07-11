@@ -220,7 +220,7 @@ export const SPECIES: Species[] = [
   },
   {
     id: "kani",
-    name: "かに",
+    name: "かにかま",
     seikaku: "こうきしんおうせい",
     shape: NIGIRI,
     rarity: 2,
