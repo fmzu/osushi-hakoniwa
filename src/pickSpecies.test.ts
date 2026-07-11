@@ -36,4 +36,30 @@ describe("pickSpecies", () => {
     const s = pickSpecies();
     expect(SPECIES).toContain(s);
   });
+
+  it("has 18 species total", () => {
+    expect(SPECIES).toHaveLength(18);
+  });
+
+  it("includes all 6 new species", () => {
+    const ids = SPECIES.map((s) => s.id);
+    for (const id of ["hotate", "saba", "tai", "kani", "corn", "botanebi"]) {
+      expect(ids).toContain(id);
+    }
+  });
+
+  it("has the expected rarity distribution (7 star1 / 8 star2 / 3 star3)", () => {
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0 };
+    for (const s of SPECIES) {
+      counts[s.rarity] = (counts[s.rarity] || 0) + 1;
+    }
+    expect(counts[1]).toBe(7);
+    expect(counts[2]).toBe(8);
+    expect(counts[3]).toBe(3);
+  });
+
+  it("can return the newly added species (last entry is botanebi)", () => {
+    const s = pickSpecies(() => 0.999999);
+    expect(s.id).toBe("botanebi");
+  });
 });
