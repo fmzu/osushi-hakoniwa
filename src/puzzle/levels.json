@@ -1,0 +1,137 @@
+[
+  {
+    "chapter": 1,
+    "who": "Aさん",
+    "n": 1,
+    "rows": "h.dpjT/nrfckk/tofgie/mbbaiH/m.qqsl",
+    "best": 10,
+    "limit": 13,
+    "sol": "dL pL cU kL qL sL iD eL HU HU"
+  },
+  {
+    "chapter": 1,
+    "who": "Aさん",
+    "n": 2,
+    "rows": "h.Teeb/h..dji/kk.djf/cc.laa/gg.l.H",
+    "best": 10,
+    "limit": 13,
+    "sol": "dL lU HL HL HL lD dR HU HU HU"
+  },
+  {
+    "chapter": 1,
+    "who": "Aさん",
+    "n": 3,
+    "rows": "aabbTc/ddee.c/ffg.hh/H.gijj/kkl.mm",
+    "best": 12,
+    "limit": 16,
+    "sol": "HR iD gR HR fD dD eL eL HU HU HR HR"
+  },
+  {
+    "chapter": 2,
+    "who": "おっさん",
+    "n": 1,
+    "rows": "aabbTc/ddeeWc/ffg.hh/H.gijj/kkl.mm",
+    "best": 13,
+    "limit": 17,
+    "sol": "HR iD gR HR fD dD eL eL HU HU HR WU WL"
+  },
+  {
+    "chapter": 2,
+    "who": "おっさん",
+    "n": 2,
+    "rows": ".jguas/hjqTdl/cobrdt/cmiikf/pneWHf",
+    "best": 14,
+    "limit": 19,
+    "sol": "hU cU mL iL rD WU WR WU WU WU WL WU WD HU"
+  },
+  {
+    "chapter": 2,
+    "who": "おっさん",
+    "n": 3,
+    "rows": "rq.Tll/fqtagm/hhWacm/bHidcp/jesonk",
+    "best": 17,
+    "limit": 23,
+    "sol": "tU WU WD WU WL iU HU dL aD iR HU dU sU oL aD iD HR"
+  },
+  {
+    "chapter": 3,
+    "who": "主婦",
+    "n": 1,
+    "rows": "kiirfq/kT.1dd/mpaahh/c2bHjg/no.ejl",
+    "best": 18,
+    "limit": 24,
+    "sol": "oR nR cD mD pL aL HU bR oU nR cR mD pD aL HL HU"
+  },
+  {
+    "chapter": 3,
+    "who": "主婦",
+    "n": 2,
+    "rows": ".1Hk2p/mdekgT/qoffr./hoiinj/ccblaj",
+    "best": 18,
+    "limit": 24,
+    "sol": "mU dL oU iL nL rD fR fR kD HR eU kL gL gD HD HR"
+  },
+  {
+    "chapter": 3,
+    "who": "主婦",
+    "n": 3,
+    "rows": "npfbe./lgTke2/jj.cim/1ddchm/.Haaho",
+    "best": 20,
+    "limit": 26,
+    "sol": "HL aL cD kD kL cU cU dR aR HR HU aL aL dD kD kR HR HU"
+  },
+  {
+    "chapter": 4,
+    "who": "女子高生",
+    "n": 1,
+    "rows": "q.hrij/caaTip/caa.mm/sfe1bn/Hkelgd/.kolgd",
+    "best": 23,
+    "limit": 30,
+    "sol": "qR cU sU HU kL fD HR sD cD qL hL oL eD HR sR cD qD hL aU HU HR"
+  },
+  {
+    "chapter": 4,
+    "who": "女子高生",
+    "n": 2,
+    "rows": "aabbTc/ddAe.c/ff1ghh/H.igjj/kk2mm.",
+    "best": 24,
+    "limit": 32,
+    "sol": "eR gU HR iR mR iD HR fD dD aD bL gU HR HU jL jL hD eD eR HR HU"
+  },
+  {
+    "chapter": 4,
+    "who": "女子高生",
+    "n": 3,
+    "rows": "ddhhll/gTjm1H/qipm.r/cn.aao/fnsaat/febbkk",
+    "best": 25,
+    "limit": 33,
+    "sol": "pD iR nU eU bL kL tD oD rD HD HL rU rU oU oU aR mD mD HL HU iR jD HL"
+  },
+  {
+    "chapter": 5,
+    "who": "イクラの子",
+    "n": 1,
+    "rows": "aabT.c/ddW.2c/ffghhi/H1gjji/kklmm.",
+    "best": 23,
+    "limit": 30,
+    "sol": "mR lR gD WU WD dR dR fU WU WL WU WL WU WD HR HR fD dL dL HU HR"
+  },
+  {
+    "chapter": 5,
+    "who": "イクラの子",
+    "n": 2,
+    "rows": "nccTll/fhiggb/.he1.b/oqeWkd/aajHkd/aajmmp",
+    "best": 26,
+    "limit": 34,
+    "sol": "fD nD cL iU eU jU mL kD WU WD HR HU kU mR jD qR hD qR eD gL gL HU HL"
+  },
+  {
+    "chapter": 5,
+    "who": "イクラの子",
+    "n": 3,
+    "rows": "ncc.ll/fTiggb/qhe1kb/ohe.kd/aajWHd/aajmmp",
+    "best": 28,
+    "limit": 37,
+    "sol": "lL bU dU WU WR pU mR HU jR eD eD HL jU mL pD dD bD HU eU mL pL dD bD gR iR HU"
+  }
+]
