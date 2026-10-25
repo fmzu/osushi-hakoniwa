@@ -207,9 +207,64 @@ function key(b: Board): string {
   return s;
 }
 
-type Entry = { board: Board; path: Move[]; cost: number };
+/** 探索の結果。gaveUp は状態数の上限で打ち切った（解があるかは分からない） */
+export type SearchResult = { kind: "found"; path: Move[] } | { kind: "none" } | { kind: "gaveUp" };
 
-/** 現在の盤面から、残り手数以内の最小コスト手順。なければ null */
+/** 現在の盤面から、残り手数以内の最小コスト手順を探す */
+export function searchFrom(
+  level: Level,
+  board: Board,
+  movesLeft: number,
+  maxStates = 1_500_000,
+  opts: RuleOptions = {},
+): SearchResult {
+  if (isWon(board.pieces)) return { kind: "found", path: [] };
+  // 手順は配列をコピーせず、親の番号とそこからの一手で持つ（Go のソルバーと同じ）
+  const boards: Board[] = [board];
+  const keys: string[] = [key(board)];
+  const parent: number[] = [-1];
+  const via: (Move | null)[] = [null];
+  const best = new Map<string, number>([[keys[0], 0]]);
+  const buckets: number[][] = [[0]];
+  const pathTo = (i: number): Move[] => {
+    const path: Move[] = [];
+    for (let j = i; parent[j] !== -1; j = parent[j]) path.push(via[j]!);
+    return path.reverse();
+  };
+  for (let c = 0; c <= movesLeft; c++) {
+    const bucket = buckets[c];
+    if (!bucket) continue;
+    for (const i of bucket) {
+      if ((best.get(keys[i]) ?? Infinity) < c) continue;
+      // コストが1か2なので、見つけた時点ではなくバケットから取り出した時点で判定する
+      if (isWon(boards[i].pieces)) return { kind: "found", path: pathTo(i) };
+      for (const p of boards[i].pieces) {
+        if (isFixed(p)) continue;
+        for (const d of DIRS) {
+          const out = apply(level, boards[i], p.id, d, opts);
+          if (out.kind === "blocked") continue;
+          const cost = c + out.cost;
+          if (cost > movesLeft) continue;
+          const k = key(out.board);
+          if ((best.get(k) ?? Infinity) <= cost) continue;
+          best.set(k, cost);
+          if (best.size > maxStates) return { kind: "gaveUp" };
+          const j = boards.length;
+          boards.push(out.board);
+          keys.push(k);
+          parent.push(i);
+          via.push({ id: p.id, dir: d });
+          (buckets[cost] ||= []).push(j);
+          // 納豆を拾い集める手は向きによらないので、向きの試行は1回で足りる
+          if (out.kind === "armed") break;
+        }
+      }
+    }
+  }
+  return { kind: "none" };
+}
+
+/** searchFrom の手順だけを返す版。解なし・打ち切りはどちらも null */
 export function solveFrom(
   level: Level,
   board: Board,
@@ -217,39 +272,8 @@ export function solveFrom(
   maxStates = 1_500_000,
   opts: RuleOptions = {},
 ): Move[] | null {
-  if (isWon(board.pieces)) return [];
-  const best = new Map<string, number>([[key(board), 0]]);
-  const buckets: Entry[][] = [];
-  const push = (e: Entry) => {
-    (buckets[e.cost] ||= []).push(e);
-  };
-  push({ board, path: [], cost: 0 });
-  for (let c = 0; c <= movesLeft; c++) {
-    const bucket = buckets[c];
-    if (!bucket) continue;
-    for (const cur of bucket) {
-      if ((best.get(key(cur.board)) ?? Infinity) < cur.cost) continue;
-      // コストが1か2なので、見つけた時点ではなくバケットから取り出した時点で判定する
-      if (isWon(cur.board.pieces)) return cur.path;
-      for (const p of cur.board.pieces) {
-        if (isFixed(p)) continue;
-        for (const d of DIRS) {
-          const out = apply(level, cur.board, p.id, d, opts);
-          if (out.kind === "blocked") continue;
-          const cost = cur.cost + out.cost;
-          if (cost > movesLeft) continue;
-          const k = key(out.board);
-          if ((best.get(k) ?? Infinity) <= cost) continue;
-          best.set(k, cost);
-          if (best.size > maxStates) return null;
-          push({ board: out.board, path: [...cur.path, { id: p.id, dir: d }], cost });
-          // 納豆を拾い集める手は向きによらないので、向きの試行は1回で足りる
-          if (out.kind === "armed") break;
-        }
-      }
-    }
-  }
-  return null;
+  const r = searchFrom(level, board, movesLeft, maxStates, opts);
+  return r.kind === "found" ? r.path : null;
 }
 
 export function solve(level: Level, maxStates?: number, opts?: RuleOptions): Move[] | null {
