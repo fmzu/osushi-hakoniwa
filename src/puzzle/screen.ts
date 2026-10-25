@@ -92,7 +92,7 @@ export function startScreen(): void {
     note.className = "note";
     if (state.status === "won") {
       const clean = state.undos === 0 && state.hints === 0;
-      const chapterDone = entry.n === 3 && LEVELS[cur + 1] ? `　${entry.who}の章クリア` : "";
+      const chapterDone = entry.n === 3 ? `　${entry.who}の章クリア` : "";
       note.textContent =
         (clean ? "鯛を寿司にした！（金）" : "鯛を寿司にした！（銀：戻す・ヒントを使った）") +
         chapterDone;
@@ -132,7 +132,7 @@ export function startScreen(): void {
     }
     for (const a of state.angered) {
       const p = state.board.pieces.find((q) => q.id === a);
-      if (p) pop(p, "ツーン！ -1", "angry");
+      if (p) pop(p, "ツーン！ +1", "angry");
     }
     if (state.status === "won") {
       wonAt = now;

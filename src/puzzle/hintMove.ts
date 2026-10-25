@@ -1,4 +1,4 @@
-import { createState, solveFrom, step } from "./core";
+import { costOf, createState, solveFrom, step } from "./core";
 import type { Board, Move, State } from "./core";
 
 /** 盤面の署名（納豆の拾い集め状態＋全駒の位置）。駒の並び順に左右されない */
@@ -13,13 +13,6 @@ function signature(b: Board): string {
   );
 }
 
-/** 残りの手順のコスト（わさびの罰込み） */
-function restCost(state: State, rest: Move[]): number {
-  let s = { ...state, level: { ...state.level, moveLimit: Infinity }, moves: 0 };
-  for (const m of rest) s = step(s, m.id, m.dir);
-  return s.moves;
-}
-
 /** 事前計算した正解手順の上にいて、残りが残り手数に収まるなら、その次の一手を返す。そうでなければ null */
 export function precomputedHint(state: State, sol: Move[]): Move | null {
   const now = signature(state.board);
@@ -27,7 +20,9 @@ export function precomputedHint(state: State, sol: Move[]): Move | null {
   for (let i = 0; i < sol.length; i++) {
     if (signature(s.board) === now) {
       const left = state.level.moveLimit - state.moves;
-      return restCost(s, sol.slice(i)) <= left ? sol[i] : null;
+      // 残りの手順のコスト（わさびの罰込み）= 全体 − ここまで
+      const rest = costOf(state.level, sol) - costOf(state.level, sol.slice(0, i));
+      return rest <= left ? sol[i] : null;
     }
     s = step({ ...s, moves: 0 }, sol[i].id, sol[i].dir);
   }
