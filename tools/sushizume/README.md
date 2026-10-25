@@ -66,4 +66,6 @@ go test ./...
 - `src/puzzle/levels.json` の15面すべてで、Go の最短手数が `best` と一致し、`sol` を再生するとクリアできる
 - `levels.src.json` から計算し直した結果が `levels.json` と一致する（`export` のやり忘れの検出）
 
-CI は `.github/workflows/sushizume-tools.yml` で、`tools/sushizume/**` と `src/puzzle/levels.json` が変わったときに上の3つを走らせます。
+CI は `.github/workflows/sushizume-tools.yml` で、`tools/sushizume/**`・`src/puzzle/levels.json`・`src/puzzle/core.ts` が変わったときに上の3つを走らせます。
+
+TS 側（`src/puzzle/*.test.ts`）は PR ごとに `.github/workflows/ci.yml` で走ります。`core.ts` のルールを変えて15面の最短手数が変わると、TS のテスト（`levels.test.ts`）が `levels.json` の `best` と食い違って落ちるので、Go 側も直して `go run . export` してください。
