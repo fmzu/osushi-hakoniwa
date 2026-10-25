@@ -217,3 +217,18 @@ button:active {
   display: block;
   margin: 14px auto 0;
 }
+.bar .linkbtn {
+  font-size: 13px;
+  color: #8a5a48;
+  background: #fff;
+  border: 2px solid #e9b7c4;
+  border-radius: 10px;
+  padding: 6px 14px;
+  box-shadow: 0 2px 0 #e9b7c4;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.bar .linkbtn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}

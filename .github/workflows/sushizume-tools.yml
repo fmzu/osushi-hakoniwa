@@ -1,0 +1,44 @@
+name: sushizume-tools
+
+on:
+  push:
+    paths:
+      - "tools/sushizume/**"
+      - "src/puzzle/levels.json"
+      - ".github/workflows/sushizume-tools.yml"
+  pull_request:
+    paths:
+      - "tools/sushizume/**"
+      - "src/puzzle/levels.json"
+      - ".github/workflows/sushizume-tools.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/sushizume
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/sushizume/go.mod
+
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "gofmt が必要なファイル:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test ./...

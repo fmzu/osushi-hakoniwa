@@ -4,6 +4,12 @@ export default defineConfig({
   staged: {
     "*": "vp check --fix",
   },
+  // 本編(index.html)と追加章すしづめ(sushizume.html)の2ページ構成
+  build: {
+    rollupOptions: {
+      input: { main: "index.html", sushizume: "sushizume.html" },
+    },
+  },
   fmt: {},
   lint: {
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],

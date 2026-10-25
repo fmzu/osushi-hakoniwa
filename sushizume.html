@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>すしづめ — おすしのはこにわ</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@500;700&display=swap"
+    />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>すしづめ</h1>
+        <select id="level" aria-label="面"></select>
+      </header>
+      <a class="back" href="/">← はこにわへ</a>
+      <div id="info"></div>
+      <div class="meter"><div id="meter"></div></div>
+      <div id="stage"><canvas id="board" aria-label="盤面"></canvas></div>
+      <p class="note" id="note"></p>
+      <div class="controls">
+        <button id="undo" type="button">一手戻す</button>
+        <button id="hint" type="button">ヒント</button>
+        <button id="reset" type="button">はじめから</button>
+        <button id="next" type="button" class="primary" hidden>次の面へ</button>
+      </div>
+      <p class="how">
+        コマの上でスワイプすると1マス動く。納豆はこぼれているので、拾い集めてから動く（2手）。そのかわり、1マスの寿司と入れ替われる。宇宙人がわさびのとなりに入ると「ツーン！」で手数-1。
+      </p>
+    </div>
+    <script type="module" src="/src/puzzle/main.ts"></script>
+  </body>
+</html>
