@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { costOf, createState, isWon, parseLevel, solve, step, undo } from "./core";
+import { costOf, createState, isWon, parseLevel, searchFrom, solve, step, undo } from "./core";
 import type { Dir, State } from "./core";
 
 /** 文字盤から遊び始める。制限手数は十分大きくしておく */
@@ -278,5 +278,13 @@ describe("solve", () => {
   it("returns null when there is no route within the limit", () => {
     expect(solve(parseLevel(["HaT"], { moveLimit: 9 }))).toBeNull();
     expect(solve(parseLevel(["H..T"], { moveLimit: 1 }))).toBeNull();
+  });
+
+  it("tells 'no route' apart from 'gave up at the state cap'", () => {
+    const lv = parseLevel(["H....", ".....", "....T"], { moveLimit: 9 });
+    const board = createState(lv).board;
+    expect(searchFrom(lv, board, 9).kind).toBe("found");
+    expect(searchFrom(lv, board, 9, 2)).toEqual({ kind: "gaveUp" });
+    expect(searchFrom(lv, board, 2)).toEqual({ kind: "none" });
   });
 });

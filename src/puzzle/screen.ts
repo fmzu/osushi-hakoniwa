@@ -2,7 +2,7 @@ import { createState, step, undo } from "./core";
 import type { Dir, Move, State } from "./core";
 import { CELL, drawBoard } from "./drawBoard";
 import type { Slide } from "./drawBoard";
-import { findHint } from "./hintMove";
+import type { HintRequest, HintResponse } from "./hintWorker";
 import { assignLooks } from "./looks";
 import type { Look } from "./looks";
 import { LEVELS, levelKey } from "./levels";
@@ -29,6 +29,8 @@ export function startScreen(): void {
   const note = byId("note");
   const sel = byId<HTMLSelectElement>("level");
   const nextBtn = byId<HTMLButtonElement>("next");
+  const hintBtn = byId<HTMLButtonElement>("hint");
+  const hintWorker = new Worker(new URL("./hintWorker.ts", import.meta.url), { type: "module" });
 
   const sprites = createSprites();
   let progress = loadProgress();
@@ -39,6 +41,9 @@ export function startScreen(): void {
   const slides = new Map<string, Slide>();
   let flop: 0 | 1 = 0;
   let shownHint: Move | null = null;
+  /** 探索中のヒントの番号と、頼んだときの盤面。探索中でなければ null */
+  let asking: { id: number; board: State["board"]; moves: number } | null = null;
+  let askSeq = 0;
   let wonAt = 0;
 
   /** 面の選択肢。クリア済みの面には金/銀の印を付ける */
@@ -188,17 +193,46 @@ export function startScreen(): void {
     slides.clear();
     update();
   };
-  byId("hint").onclick = () => {
-    if (state.status !== "playing") return;
+  hintBtn.onclick = () => {
+    if (state.status !== "playing" || asking) return;
+    asking = { id: ++askSeq, board: state.board, moves: state.moves };
+    hintBtn.disabled = true;
     note.textContent = "考え中…";
-    // 外れた局面ではソルバーが数秒かかることがあるので、「考え中…」を描いてから探す
-    setTimeout(() => {
-      const m = findHint(state, LEVELS[cur].sol);
-      state = { ...state, hints: state.hints + 1, last: null };
-      shownHint = m;
+    // 手戻しの履歴は探索に要らないので送らない
+    const req: HintRequest = {
+      id: asking.id,
+      state: { ...state, history: [] },
+      sol: LEVELS[cur].sol,
+    };
+    hintWorker.postMessage(req);
+  };
+  hintWorker.onmessage = (e: MessageEvent<HintResponse>) => {
+    const { id, hint } = e.data;
+    if (!asking || asking.id !== id) return;
+    const asked = asking;
+    asking = null;
+    hintBtn.disabled = false;
+    // 考えているあいだに盤が変わった（動かした・戻した・面を変えた）なら、結果は捨てて数えない
+    if (state.board !== asked.board || state.moves !== asked.moves || state.status !== "playing") {
       update();
-      if (!m) note.textContent = "残りの手数では無理そう。戻すか、はじめから";
-    }, 20);
+      return;
+    }
+    if (hint.kind === "gaveUp") {
+      // 何も教えていないので、ヒントを使ったことにはしない
+      update();
+      note.textContent = "ヒントが見つからなかった。少し戻してから、もう一度";
+      return;
+    }
+    state = { ...state, hints: state.hints + 1, last: null };
+    shownHint = hint.kind === "move" ? hint.move : null;
+    update();
+    if (hint.kind === "impossible") note.textContent = "残りの手数では無理そう。戻すか、はじめから";
+  };
+  hintWorker.onerror = () => {
+    asking = null;
+    hintBtn.disabled = false;
+    update();
+    note.textContent = "ヒントを出せなかった。もう一度押してみて";
   };
   nextBtn.onclick = () => load(cur + 1);
   sel.onchange = () => load(Number(sel.value));

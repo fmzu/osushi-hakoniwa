@@ -1,4 +1,4 @@
-import { costOf, createState, solveFrom, step } from "./core";
+import { costOf, createState, searchFrom, step } from "./core";
 import type { Board, Move, State } from "./core";
 
 /** 盤面の署名（納豆の拾い集め状態＋全駒の位置）。駒の並び順に左右されない */
@@ -29,10 +29,19 @@ export function precomputedHint(state: State, sol: Move[]): Move | null {
   return null;
 }
 
-/** ヒントの一手を探す。手順の上なら即答、外れていたらブラウザ内のソルバーで探す。なければ null */
-export function findHint(state: State, sol: Move[]): Move | null {
+/** ヒントの結果。gaveUp は探索の上限で打ち切った（解けるかは分からない） */
+export type Hint = { kind: "move"; move: Move } | { kind: "impossible" } | { kind: "gaveUp" };
+
+/** 外れた局面で探す状態数の上限。15面で無駄な手を混ぜた150局面では一度も達しなかった */
+export const HINT_MAX_STATES = 300_000;
+
+/** ヒントの一手を探す。手順の上なら即答、外れていたらソルバーで探す */
+export function findHint(state: State, sol: Move[], maxStates = HINT_MAX_STATES): Hint {
   const pre = precomputedHint(state, sol);
-  if (pre) return pre;
-  const found = solveFrom(state.level, state.board, state.level.moveLimit - state.moves, 300_000);
-  return found && found.length > 0 ? found[0] : null;
+  if (pre) return { kind: "move", move: pre };
+  const r = searchFrom(state.level, state.board, state.level.moveLimit - state.moves, maxStates);
+  if (r.kind === "gaveUp") return r;
+  return r.kind === "found" && r.path.length > 0
+    ? { kind: "move", move: r.path[0] }
+    : { kind: "impossible" };
 }

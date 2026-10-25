@@ -40,7 +40,7 @@ describe("precomputedHint", () => {
 describe("findHint", () => {
   it("answers from the precomputed path at the start", () => {
     const l = LEVELS[0];
-    expect(findHint(createState(l.level), l.sol)).toEqual(l.sol[0]);
+    expect(findHint(createState(l.level), l.sol)).toEqual({ kind: "move", move: l.sol[0] });
   });
 
   it("falls back to the solver when off the path, and the move is playable", () => {
@@ -54,8 +54,8 @@ describe("findHint", () => {
     };
     s = step(s, back.id, back.dir);
     const h = findHint(s, l.sol);
-    expect(h).not.toBeNull();
-    expect(apply(s.level, s.board, h!.id, h!.dir).kind).not.toBe("blocked");
+    if (h.kind !== "move") throw new Error(`ヒントが出ない: ${h.kind}`);
+    expect(apply(s.level, s.board, h.move.id, h.move.dir).kind).not.toBe("blocked");
   });
 
   it("does not use the precomputed path when its rest no longer fits the remaining moves", () => {
@@ -66,12 +66,18 @@ describe("findHint", () => {
     const s = play(createState(l.level), [...wiggle, ...wiggle]);
     expect(l.limit - s.moves).toBeLessThan(l.best);
     expect(precomputedHint(s, l.sol)).toBeNull();
-    expect(findHint(s, l.sol)).toBeNull();
+    expect(findHint(s, l.sol)).toEqual({ kind: "impossible" });
   });
 
-  it("returns null when it cannot be cleared within the remaining moves", () => {
+  it("says impossible when it cannot be cleared within the remaining moves", () => {
     const l = LEVELS[0];
     const s: State = { ...createState(l.level), moves: l.limit - 1 };
-    expect(findHint(s, [])).toBeNull();
+    expect(findHint(s, [])).toEqual({ kind: "impossible" });
+  });
+
+  it("says gaveUp, not impossible, when the search hits its state cap", () => {
+    // 解ける初期盤でも、上限が小さすぎると打ち切りになる。「無理」とは区別する
+    const l = LEVELS[0];
+    expect(findHint(createState(l.level), [], 10)).toEqual({ kind: "gaveUp" });
   });
 });
