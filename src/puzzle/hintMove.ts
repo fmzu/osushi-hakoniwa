@@ -13,13 +13,23 @@ function signature(b: Board): string {
   );
 }
 
-/** 事前計算した正解手順の上にいれば、その次の一手を返す。外れていれば null */
+/** 残りの手順のコスト（わさびの罰込み） */
+function restCost(state: State, rest: Move[]): number {
+  let s = { ...state, level: { ...state.level, moveLimit: Infinity }, moves: 0 };
+  for (const m of rest) s = step(s, m.id, m.dir);
+  return s.moves;
+}
+
+/** 事前計算した正解手順の上にいて、残りが残り手数に収まるなら、その次の一手を返す。そうでなければ null */
 export function precomputedHint(state: State, sol: Move[]): Move | null {
   const now = signature(state.board);
   let s = createState(state.level);
-  for (const m of sol) {
-    if (signature(s.board) === now) return m;
-    s = step({ ...s, moves: 0 }, m.id, m.dir);
+  for (let i = 0; i < sol.length; i++) {
+    if (signature(s.board) === now) {
+      const left = state.level.moveLimit - state.moves;
+      return restCost(s, sol.slice(i)) <= left ? sol[i] : null;
+    }
+    s = step({ ...s, moves: 0 }, sol[i].id, sol[i].dir);
   }
   return null;
 }

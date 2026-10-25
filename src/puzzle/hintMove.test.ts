@@ -58,6 +58,17 @@ describe("findHint", () => {
     expect(apply(s.level, s.board, h!.id, h!.dir).kind).not.toBe("blocked");
   });
 
+  it("does not use the precomputed path when its rest no longer fits the remaining moves", () => {
+    // 1-1 で行って戻るを2回すると初期盤に戻るが、残り9手で最短10手には届かない
+    const l = LEVELS[0];
+    const back: Dir = { left: "right", right: "left", up: "down", down: "up" }[l.sol[0].dir] as Dir;
+    const wiggle = [l.sol[0], { id: l.sol[0].id, dir: back }];
+    const s = play(createState(l.level), [...wiggle, ...wiggle]);
+    expect(l.limit - s.moves).toBeLessThan(l.best);
+    expect(precomputedHint(s, l.sol)).toBeNull();
+    expect(findHint(s, l.sol)).toBeNull();
+  });
+
   it("returns null when it cannot be cleared within the remaining moves", () => {
     const l = LEVELS[0];
     const s: State = { ...createState(l.level), moves: l.limit - 1 };

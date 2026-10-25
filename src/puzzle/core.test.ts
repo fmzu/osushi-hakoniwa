@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vite-plus/test";
-import { createState, isWon, parseLevel, solve, step, undo } from "./core";
+import { costOf, createState, isWon, parseLevel, solve, step, undo } from "./core";
 import type { Dir, State } from "./core";
 
 /** 文字盤から遊び始める。制限手数は十分大きくしておく */
@@ -218,6 +218,12 @@ describe("win / lose", () => {
     const s = step(start(["H.T"], 1), "H", "right");
     expect(s.status).toBe("won");
   });
+
+  it("loses when a wasabi penalty on the winning move goes over the limit", () => {
+    // 移動1＋ツーン1＝2手。制限ちょうどならクリア、超えたら失敗
+    expect(step(start(["H.T", ".A."], 2), "H", "right").status).toBe("won");
+    expect(step(start(["H.T", ".A."], 1), "H", "right").status).toBe("lost");
+  });
 });
 
 describe("undo", () => {
@@ -261,6 +267,12 @@ describe("solve", () => {
       { id: "W", dir: expect.any(String) },
       { id: "W", dir: "left" },
     ]);
+  });
+
+  it("returns the cheapest goal, not the first one found (wasabi makes costs uneven)", () => {
+    // HU HR HR HD（ツーンで7手）より HU HR HR HR（6手）が安い
+    const lv = parseLevel(["....", "1...", "....", "H2.T"], { moveLimit: 12 });
+    expect(costOf(lv, solve(lv)!)).toBe(6);
   });
 
   it("returns null when there is no route within the limit", () => {

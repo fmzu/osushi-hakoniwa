@@ -169,7 +169,9 @@ export function step(state: State, id: string, dir: Dir, opts: RuleOptions = {})
   if (out.kind === "blocked") return { ...state, last: "blocked", angered: [] };
   const moves = state.moves + out.cost;
   let status: State["status"] = "playing";
-  if (isWon(out.board.pieces)) status = "won";
+  // 制限を超えたらクリアの形でも失敗（わさびの罰で最後の一手が制限をまたぐ場合）
+  if (moves > state.level.moveLimit) status = "lost";
+  else if (isWon(out.board.pieces)) status = "won";
   else if (moves >= state.level.moveLimit) status = "lost";
   return {
     ...state,
@@ -227,6 +229,8 @@ export function solveFrom(
     if (!bucket) continue;
     for (const cur of bucket) {
       if ((best.get(key(cur.board)) ?? Infinity) < cur.cost) continue;
+      // コストが1か2なので、見つけた時点ではなくバケットから取り出した時点で判定する
+      if (isWon(cur.board.pieces)) return cur.path;
       for (const p of cur.board.pieces) {
         if (isFixed(p)) continue;
         for (const d of DIRS) {
@@ -238,9 +242,7 @@ export function solveFrom(
           if ((best.get(k) ?? Infinity) <= cost) continue;
           best.set(k, cost);
           if (best.size > maxStates) return null;
-          const path = [...cur.path, { id: p.id, dir: d }];
-          if (isWon(out.board.pieces)) return path;
-          push({ board: out.board, path, cost });
+          push({ board: out.board, path: [...cur.path, { id: p.id, dir: d }], cost });
           // 納豆を拾い集める手は向きによらないので、向きの試行は1回で足りる
           if (out.kind === "armed") break;
         }
