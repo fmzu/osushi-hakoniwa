@@ -5,11 +5,13 @@ on:
     paths:
       - "tools/sushizume/**"
       - "src/puzzle/levels.json"
+      - "src/puzzle/core.ts"
       - ".github/workflows/sushizume-tools.yml"
   pull_request:
     paths:
       - "tools/sushizume/**"
       - "src/puzzle/levels.json"
+      - "src/puzzle/core.ts"
       - ".github/workflows/sushizume-tools.yml"
 
 permissions:
