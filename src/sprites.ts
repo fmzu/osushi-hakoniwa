@@ -201,6 +201,97 @@ export const KANI_LEG: Overlay = {
 };
 
 // ============ スプライトベイク ============
+// ============ 物語専用の種の絵（SPECIES には入れない） ============
+export const KANPYO: Shape = {
+  stretch: [
+    "................",
+    "................",
+    "................",
+    "................",
+    ".....NNNNNN.....",
+    "....NRRRRRRN....",
+    "...NRRRKKRRRN...",
+    "...NRRRKKRRRN...",
+    "...NDRRRRRRDN...",
+    "...NNDDDDDDNN...",
+    "...NNNNNNNNNN...",
+    "...NnNNNNNNNN...",
+    "....NNNNNNNN....",
+    "................",
+    "................",
+    "................",
+  ],
+  scrunch: [
+    "................",
+    "................",
+    "................",
+    "......NNNNN.....",
+    ".....NRRRRRN....",
+    "....NRRRKKRRN...",
+    "....NRRRKKRRN...",
+    "....NDRRRRRDN...",
+    "....NNDDDDDNN...",
+    "....NNNNNNNNN...",
+    "....NNNNNNNNN...",
+    "....NnNNNNNNN...",
+    ".....NNNNNNN....",
+    "................",
+    "................",
+    "................",
+  ],
+};
+
+export const FUTOMAKI: Shape = {
+  stretch: [
+    "................",
+    "................",
+    "................",
+    "....NNNNNNNN....",
+    "..NNRRRRRRRRNN..",
+    ".NRRRRYYPPRRRRN.",
+    ".NRRRGBBMMPRRRN.",
+    ".NRRRRGCYYRRRRN.",
+    ".NDRRRRRRRRRRDN.",
+    ".NNDDDDDDDDDDNN.",
+    ".NNNNNNNNNNNNNN.",
+    ".NnNNNNNNNNNnNN.",
+    "..NNNNNNNNNNNN..",
+    "................",
+    "................",
+    "................",
+  ],
+  scrunch: [
+    "................",
+    "................",
+    "....NNNNNNNN....",
+    "...NRRRRRRRRN...",
+    "..NRRRYPPRRRRN..",
+    "..NRRGBBMMPRRN..",
+    "..NRRRGCYYRRRN..",
+    "..NDRRRRRRRRDN..",
+    "..NNDDDDDDDDNN..",
+    "..NNNNNNNNNNNN..",
+    "..NNNNNNNNNNNN..",
+    "..NnNNNNNNNNnN..",
+    "...NNNNNNNNNN...",
+    "................",
+    "................",
+    "................",
+  ],
+};
+
+const MAKI_PAL: Palette = { N: "#414F44", n: "#5E6E60", R: "#FFFDF6", D: "#EFDFC8" };
+export const KANPYO_PAL: Palette = { ...MAKI_PAL, K: "#A8743E", k: "#C9955A" };
+export const FUTOMAKI_PAL: Palette = {
+  ...MAKI_PAL,
+  Y: "#FFD24A",
+  P: "#F8B5B0",
+  G: "#8CC152",
+  B: "#8A5A34",
+  M: "#E64A5E",
+  C: "#6FA23A",
+};
+
 export function bake(
   grid: Grid,
   flip: boolean,

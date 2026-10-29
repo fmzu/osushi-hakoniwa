@@ -6,10 +6,13 @@ import { state, store } from "./store";
 import { GREET_NEED } from "./species";
 import { showBanner } from "./banner";
 import { updateZukanCount } from "./zukan";
+import { isStoryOnly } from "./residents/isStoryOnly";
+import { showLine } from "./residents/showLine";
 
 export function greet(s: Sushi): void {
   const sp = s.sp;
   hearts.push({ x: s.x + 8, y: s.y - 2, life: 1 });
+  if (isStoryOnly(sp)) return;
   if (state.friends.has(sp.id)) return;
   state.greet[sp.id] = (state.greet[sp.id] || 0) + 1;
   if (sp.seikaku === "はずかしがりや") {
@@ -36,6 +39,7 @@ export function initInput(): void {
     for (const s of sorted) {
       if (px >= s.x && px < s.x + 16 && py >= s.y && py < s.y + 16) {
         greet(s);
+        showLine(s);
         return;
       }
     }

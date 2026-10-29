@@ -47,6 +47,8 @@ export type Sushi = {
   frame: number;
   timer: number;
   pause: number;
+  /** 住人の一行。あれば物語の住人（帰らない・図鑑に数えない） */
+  line?: string;
 };
 
 export type Heart = {

@@ -59,8 +59,10 @@ export function visit(): boolean {
 }
 
 export function leave(): void {
-  if (sushis.length <= 3) return;
-  const i = Math.floor(Math.random() * sushis.length);
+  // 住人（line あり）は帰らない。住人以外が3以下なら帰らない
+  const guests = sushis.filter((s) => !s.line);
+  if (guests.length <= 3) return;
+  const i = sushis.indexOf(guests[Math.floor(Math.random() * guests.length)]);
   sushis.splice(i, 1);
   const count = document.getElementById("count");
   if (count) count.textContent = String(sushis.length);
