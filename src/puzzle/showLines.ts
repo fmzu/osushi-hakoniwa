@@ -60,6 +60,8 @@ export function showLines(opts: LinesOptions): Promise<LinesResult> {
       }
       if (i < ps.length) {
         ps[i].classList.remove("hide");
+        // 長い章は小さい画面からはみ出すので、出した行が見えるところまで送る
+        ps[i].scrollIntoView?.({ block: "nearest", behavior: "smooth" });
         i++;
         return;
       }
