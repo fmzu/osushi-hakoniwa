@@ -50,6 +50,9 @@ export function showLines(opts: LinesOptions): Promise<LinesResult> {
     skip.onkeydown = (e) => e.stopPropagation();
 
     root.replaceChildren(label, text, hint, skip);
+    // 中身を差し替えるとフォーカスしていたボタン（メニュー・とばす）が消えて body に落ち、
+    // Enter／Space が届かなくなるので、暗い画面に戻す
+    root.focus({ preventScroll: true });
 
     let i = 0;
     const next = (): void => {

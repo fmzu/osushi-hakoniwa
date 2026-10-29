@@ -33,6 +33,9 @@ export function showWord(opts: WordOptions): Promise<void> {
     hint.setAttribute("aria-hidden", "true");
 
     root.replaceChildren(label, text, hint);
+    // 中身を差し替えるとフォーカスしていたボタン（メニュー・とばす）が消えて body に落ち、
+    // Enter／Space が届かなくなるので、暗い画面に戻す
+    root.focus({ preventScroll: true });
 
     const shownAt = performance.now();
     const next = (): void => {

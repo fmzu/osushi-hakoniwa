@@ -226,6 +226,19 @@ export function startScreen(): void {
 
   /** 「次の面へ」。章の途中なら暗い画面に一言 → 次の面がにじみ出る */
   async function goNext(): Promise<void> {
+    if (state.status === "won" && needsEnd(read, LEVELS[cur])) {
+      // 章の終わりを待つ一拍のうちに押されたら、終わりを先に見せる（飛ばすと未読のまま残る）。
+      // 暗い画面は開いたまま次の章の始まりへつなぐ
+      clearTimeout(endTimer);
+      await readEnd(LEVELS[cur].chapter, "slow");
+      await enter(cur + 1);
+      // 次の章の始まりを読み済みなら enter は暗い画面を閉じないので、ここで閉じる
+      if (document.getElementById("story")?.classList.contains("on")) {
+        closeOverlay();
+        emerge();
+      }
+      return;
+    }
     const word = betweenLine(LEVELS[cur].n);
     if (word === null) {
       await enter(cur + 1);
