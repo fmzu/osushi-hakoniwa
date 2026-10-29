@@ -13,7 +13,10 @@
     <div class="wrap">
       <header>
         <h1>すしづめ</h1>
-        <select id="level" aria-label="面"></select>
+        <div class="head-tools">
+          <button id="story-btn" type="button" class="small" hidden>ものがたり</button>
+          <select id="level" aria-label="面"></select>
+        </div>
       </header>
       <a class="back" href="/">← はこにわへ</a>
       <div id="info"></div>
@@ -30,6 +33,14 @@
         コマの上でスワイプすると1マス動く。納豆はこぼれているので、拾い集めてから動く（2手）。そのかわり、1マスの寿司と入れ替われる。宇宙人がわさびのとなりに入ると「ツーン！」で手数+1。
       </p>
     </div>
+    <div
+      id="story"
+      class="story-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="ものがたり"
+      tabindex="-1"
+    ></div>
     <script type="module" src="/src/puzzle/main.ts"></script>
   </body>
 </html>

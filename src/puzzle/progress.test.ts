@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vite-plus/test";
-import { PROGRESS_KEY, loadProgress, recordMedal, saveProgress } from "./progress";
+import {
+  PROGRESS_KEY,
+  loadProgress,
+  loadRead,
+  recordMedal,
+  saveProgress,
+  saveRead,
+} from "./progress";
 
 describe("progress", () => {
   beforeEach(() => localStorage.clear());
@@ -64,5 +71,42 @@ describe("recordMedal", () => {
   it("never downgrades gold to silver and returns the same object", () => {
     const p = { "1-1": "gold" } as const;
     expect(recordMedal(p, "1-1", "silver")).toBe(p);
+  });
+});
+
+describe("story read", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("is empty when nothing is saved, and for old data with only medals", () => {
+    expect(loadRead()).toEqual({});
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ medals: { "1-1": "gold" } }));
+    expect(loadRead()).toEqual({});
+    expect(loadProgress()).toEqual({ "1-1": "gold" });
+  });
+
+  it("round-trips, and saving one side keeps the other", () => {
+    saveProgress({ "1-1": "gold" });
+    saveRead({ "1-start": true });
+    expect(loadProgress()).toEqual({ "1-1": "gold" });
+    expect(loadRead()).toEqual({ "1-start": true });
+    saveProgress({ "1-1": "gold", "1-2": "silver" });
+    expect(loadRead()).toEqual({ "1-start": true });
+  });
+
+  it("drops unknown keys and wrong shapes", () => {
+    localStorage.setItem(
+      PROGRESS_KEY,
+      JSON.stringify({ read: { "1-start": true, "1-end": false, "x-start": true, "1-mid": true } }),
+    );
+    expect(loadRead()).toEqual({ "1-start": true });
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ read: ["1-start"] }));
+    expect(loadRead()).toEqual({});
+    localStorage.setItem(PROGRESS_KEY, "{broken");
+    expect(loadRead()).toEqual({});
+  });
+
+  it("does not touch the main game's key", () => {
+    saveRead({ "1-start": true });
+    expect(localStorage.getItem("osushi-zukan-v2")).toBeNull();
   });
 });

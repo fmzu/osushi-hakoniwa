@@ -1,9 +1,12 @@
-// すしづめの進行（各面の金/銀）。本編の保存キー osushi-zukan-v2 とは別に持つ。
+// すしづめの進行（各面の金/銀、読んだ物語）。本編の保存キー osushi-zukan-v2 とは別に持つ。
 // localStorage が使えない環境でも落ちず、保存しないだけで遊べる。
 
 export type Medal = "gold" | "silver";
 /** 面の識別子("1-1" など)→メダル。クリアしていない面は載らない */
 export type Progress = Record<string, Medal>;
+
+/** 読んだ物語。キーは "章-start" / "章-end"（例: "1-start"）。読んでいないものは載らない */
+export type StoryRead = Record<string, true>;
 
 export const PROGRESS_KEY = "osushi-sushizume-v1";
 
@@ -23,12 +26,37 @@ export function loadProgress(): Progress {
   }
 }
 
-export function saveProgress(p: Progress): void {
+export function loadRead(): StoryRead {
   try {
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ medals: p }));
+    const v = JSON.parse(localStorage.getItem(PROGRESS_KEY) ?? "null");
+    const read: unknown = v?.read;
+    const out: StoryRead = {};
+    if (read && typeof read === "object") {
+      for (const [k, r] of Object.entries(read)) {
+        if (r === true && /^[1-9]-(start|end)$/.test(k)) out[k] = true;
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// 金銀と既読は同じキーに入れるので、片方を保存するときもう片方を消さない
+function write(p: Progress, read: StoryRead): void {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ medals: p, read }));
   } catch {
     // localStorage が使用できない環境では保存をスキップする
   }
+}
+
+export function saveProgress(p: Progress): void {
+  write(p, loadRead());
+}
+
+export function saveRead(read: StoryRead): void {
+  write(loadProgress(), read);
 }
 
 /** メダルを記録した新しい進行を返す。すでに金なら銀で上書きしない */
