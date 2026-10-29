@@ -6,11 +6,24 @@ import type { HintRequest, HintResponse } from "./hintWorker";
 import { assignLooks } from "./looks";
 import type { Look } from "./looks";
 import { LEVELS, levelKey } from "./levels";
-import { loadProgress, recordMedal, saveProgress } from "./progress";
+import { loadProgress, loadRead, recordMedal, saveProgress, saveRead } from "./progress";
 import type { Medal } from "./progress";
+import { betweenLine } from "./betweenLine";
+import { closeOverlay } from "./closeOverlay";
+import { markRead } from "./markRead";
+import { needsEnd } from "./needsEnd";
+import { needsStart } from "./needsStart";
+import { readableParts } from "./readableParts";
+import { showLines } from "./showLines";
+import { showMenu } from "./showMenu";
+import { showWord } from "./showWord";
 import { createSprites } from "./sprites";
+import { GOAL, STORY } from "./story";
+import type { Part } from "./story";
 
 const ARROW: Record<Dir, string> = { up: "↑", down: "↓", left: "←", right: "→" };
+/** 3面目クリアから暗転までの間(ms) */
+const END_DELAY_MS = 1500;
 const MEDAL_MARK: Record<Medal, string> = { gold: "🥇", silver: "🥈" };
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -34,6 +47,10 @@ export function startScreen(): void {
 
   const sprites = createSprites();
   let progress = loadProgress();
+  let read = loadRead();
+  const storyBtn = byId<HTMLButtonElement>("story-btn");
+  /** 3面目クリア後、盤面を見せてから暗転して章の終わりを出すまでの待ち */
+  let endTimer: ReturnType<typeof setTimeout> | undefined;
 
   let cur = 0;
   let state: State = createState(LEVELS[0].level);
@@ -66,6 +83,7 @@ export function startScreen(): void {
     shownHint = null;
     slides.clear();
     wonAt = 0;
+    clearTimeout(endTimer);
     board.width = state.level.w * CELL;
     board.height = state.level.h * CELL;
     board.style.aspectRatio = `${state.level.w} / ${state.level.h}`;
@@ -109,7 +127,7 @@ export function startScreen(): void {
       note.textContent = "納豆を拾い集めた。もう一度スワイプすると動く";
     else if (state.last === "blocked") note.textContent = "そっちには動けない";
     else if (shownHint) note.textContent = `ヒント：光っているコマを ${ARROW[shownHint.dir]}`;
-    else note.textContent = "宇宙人を鯛のとなりまで連れていこう";
+    else note.textContent = GOAL;
     nextBtn.hidden = state.status !== "won" || cur >= LEVELS.length - 1;
   }
 
@@ -144,8 +162,89 @@ export function startScreen(): void {
       const t = state.board.pieces.find((p) => p.kind === "target");
       if (t) setTimeout(() => pop(t, "スシッ", "win"), 120);
       recordClear();
+      if (needsEnd(read, LEVELS[cur])) {
+        // 宇宙人が鯛の隣に立った盤面を一拍見せてから、ゆっくり暗転する
+        const at = cur;
+        clearTimeout(endTimer);
+        endTimer = setTimeout(() => {
+          const busy = document.getElementById("story")?.classList.contains("on");
+          if (cur === at && state.status === "won" && !busy) void playEnd(at);
+        }, END_DELAY_MS);
+      }
     }
     update();
+  }
+
+  // ---- 物語 ----
+  function rememberRead(chapter: number, part: Part): void {
+    const next = markRead(read, chapter, part);
+    if (next === read) return;
+    read = next;
+    saveRead(read);
+    renderStoryButton();
+  }
+
+  /** 読んだ物語がひとつでもあるときだけ「ものがたり」を出す（未読の章はネタバレなので出さない） */
+  function renderStoryButton(): void {
+    storyBtn.hidden = readableParts(read).length === 0;
+  }
+
+  /** 暗がりから盤面がにじみ出る */
+  function emerge(): void {
+    stage.classList.remove("emerge");
+    void stage.offsetWidth;
+    stage.classList.add("emerge");
+  }
+
+  async function readStart(chapter: number): Promise<void> {
+    const c = STORY[chapter - 1];
+    await showLines({ label: `${c.chapter}章　${c.who}`, lines: c.start });
+    rememberRead(chapter, "start");
+  }
+
+  /** 章の終わり → 一行 + 「おしまい」。とばしても一行の画面までは出す */
+  async function readEnd(chapter: number, fade: "none" | "slow"): Promise<void> {
+    const c = STORY[chapter - 1];
+    await showLines({ label: "", lines: c.end, fade });
+    rememberRead(chapter, "end");
+    await showWord({ text: c.line, label: `${c.chapter}章　おしまい` });
+  }
+
+  async function playEnd(i: number): Promise<void> {
+    await readEnd(LEVELS[i].chapter, "slow");
+    closeOverlay();
+  }
+
+  /** 面に入る。章の1面目で、始まりをまだ読んでいなければ自動で出し、読み終えたら盤面をにじませる */
+  async function enter(i: number): Promise<void> {
+    load(i);
+    if (!needsStart(read, LEVELS[i])) return;
+    await readStart(LEVELS[i].chapter);
+    closeOverlay();
+    emerge();
+  }
+
+  /** 「次の面へ」。章の途中なら暗い画面に一言 → 次の面がにじみ出る */
+  async function goNext(): Promise<void> {
+    const word = betweenLine(LEVELS[cur].n);
+    if (word === null) {
+      await enter(cur + 1);
+      return;
+    }
+    await showWord({ text: word });
+    load(cur + 1);
+    closeOverlay();
+    emerge();
+  }
+
+  async function replay(): Promise<void> {
+    for (;;) {
+      const item = await showMenu(readableParts(read));
+      if (!item) break;
+      if (item.part === "start") await readStart(item.chapter);
+      else await readEnd(item.chapter, "none");
+    }
+    closeOverlay();
   }
 
   // ---- 入力: コマの上でスワイプすると1マス動く ----
@@ -188,6 +287,7 @@ export function startScreen(): void {
   // ---- ボタン ----
   byId("reset").onclick = () => load(cur);
   byId("undo").onclick = () => {
+    clearTimeout(endTimer);
     state = undo(state);
     shownHint = null;
     slides.clear();
@@ -234,11 +334,13 @@ export function startScreen(): void {
     update();
     note.textContent = "ヒントを出せなかった。もう一度押してみて";
   };
-  nextBtn.onclick = () => load(cur + 1);
-  sel.onchange = () => load(Number(sel.value));
+  nextBtn.onclick = () => void goNext();
+  storyBtn.onclick = () => void replay();
+  sel.onchange = () => void enter(Number(sel.value));
 
   renderOptions();
-  load(0);
+  renderStoryButton();
+  void enter(0);
 
   function loop(now: number): void {
     flop = Math.floor(now / 450) % 2 === 0 ? 0 : 1;
