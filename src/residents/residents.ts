@@ -1,9 +1,8 @@
 import type { Species } from "../types";
 import { SPECIES } from "../species";
-import { STORY } from "../puzzle/story";
 import { KANPYO_MAKI, FUTOMAKI_SPECIES } from "./storySpecies";
 
-export type Resident = { chapter: number; species: Species; line: string };
+export type Resident = { chapter: number; species: Species };
 
 function byId(id: string): Species {
   const sp = SPECIES.find((s) => s.id === id);
@@ -11,20 +10,14 @@ function byId(id: string): Species {
   return sp;
 }
 
-// 章→住みつく種。一行は STORY が唯一の正
-const SPECIES_OF_CHAPTER: readonly Species[] = [
-  byId("maguro"),
-  byId("anago"),
-  KANPYO_MAKI,
-  FUTOMAKI_SPECIES,
-  byId("ikura"),
+/** すしづめの章→その章で寿司になって箱庭に住みつく種 */
+export const RESIDENTS: readonly Resident[] = [
+  { chapter: 1, species: byId("maguro") },
+  { chapter: 2, species: byId("anago") },
+  { chapter: 3, species: KANPYO_MAKI },
+  { chapter: 4, species: FUTOMAKI_SPECIES },
+  { chapter: 5, species: byId("ikura") },
 ];
-
-export const RESIDENTS: readonly Resident[] = STORY.map((c, i) => ({
-  chapter: c.chapter,
-  species: SPECIES_OF_CHAPTER[i],
-  line: c.line,
-}));
 
 /** 物語専用の種（焼く必要がある） */
 export const STORY_ONLY_SPECIES: Species[] = [KANPYO_MAKI, FUTOMAKI_SPECIES];

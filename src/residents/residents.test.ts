@@ -4,12 +4,10 @@ import { STORY } from "../puzzle/story";
 import { SPECIES } from "../species";
 
 describe("RESIDENTS", () => {
-  it("has one resident per chapter with the line from STORY", () => {
-    expect(RESIDENTS).toHaveLength(5);
+  it("has one resident per chapter of STORY", () => {
+    expect(RESIDENTS).toHaveLength(STORY.length);
     RESIDENTS.forEach((r, i) => {
       expect(r.chapter).toBe(STORY[i].chapter);
-      expect(r.line).toBe(STORY[i].line);
-      expect(r.line.length).toBeGreaterThan(0);
       expect(r.species.shape.stretch).toHaveLength(16);
     });
   });

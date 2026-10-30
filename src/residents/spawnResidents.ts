@@ -8,6 +8,6 @@ export function spawnResidents(): void {
   for (const r of RESIDENTS) {
     if (!cleared.includes(r.chapter)) continue;
     spawn(undefined, undefined, r.species);
-    sushis[sushis.length - 1].line = r.line;
+    sushis[sushis.length - 1].resident = true;
   }
 }

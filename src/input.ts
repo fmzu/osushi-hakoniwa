@@ -7,7 +7,6 @@ import { GREET_NEED } from "./species";
 import { showBanner } from "./banner";
 import { updateZukanCount } from "./zukan";
 import { isStoryOnly } from "./residents/isStoryOnly";
-import { showLine } from "./residents/showLine";
 
 export function greet(s: Sushi): void {
   const sp = s.sp;
@@ -39,7 +38,6 @@ export function initInput(): void {
     for (const s of sorted) {
       if (px >= s.x && px < s.x + 16 && py >= s.y && py < s.y + 16) {
         greet(s);
-        showLine(s);
         return;
       }
     }

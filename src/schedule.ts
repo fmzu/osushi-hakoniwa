@@ -30,8 +30,8 @@ export function welcomeBack(): void {
   }
   for (let i = 0; i < arrivals; i++) visit();
   if (arrivals > 0) setTimeout(() => showBanner("るすのあいだに 来てたみたい"), 600);
-  // 住人（line あり）は数えず、普通のお客を最低3匹にする
-  while (sushis.filter((s) => !s.line).length < 3) {
+  // 住人は数えず、普通のお客を最低3匹にする
+  while (sushis.filter((s) => !s.resident).length < 3) {
     if (!visit()) break;
   }
 }
